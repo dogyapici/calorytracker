@@ -8,6 +8,8 @@ import { fmt, MEALS, sumNutrients } from "@/lib/nutrition";
 import { getEntriesForDay, getProfile, getStreak } from "@/lib/queries";
 import { Icon } from "@/components/icons";
 
+import { PendingButton } from "@/components/form-bits";
+
 export const metadata = { title: "Tagebuch" };
 
 export default async function DiaryPage({ searchParams }: PageProps<"/">) {
@@ -47,7 +49,7 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
       {isToday && streak.current > 0 && (
         <p className="flex items-center justify-center gap-2 text-sm">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-label font-semibold text-primary">
-            <Icon name="streak" size={16} /> {streak.current} {streak.current === 1 ? "Tag" : "Tage"} in Folge
+            <span aria-hidden>🔥</span> {streak.current} {streak.current === 1 ? "Tag" : "Tage"} in Folge
           </span>
           {!streak.loggedToday && <span className="muted">Trag heute etwas ein, um sie zu halten.</span>}
         </p>
@@ -77,7 +79,10 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
         return (
           <section key={meal.key} className="card animate-enter p-0">
             <div className="flex items-baseline justify-between px-card pt-4">
-              <h2 className="text-h3">{meal.label}</h2>
+              <h2 className="text-h3">
+                <span aria-hidden className="mr-1.5">{meal.emoji}</span>
+                {meal.label}
+              </h2>
               <span className="text-body font-semibold">
                 {fmt(mealKcal)}
                 <span className="ml-0.5 text-caption muted">kcal</span>
@@ -119,7 +124,7 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
                   <input type="hidden" name="from" value={yesterday} />
                   <input type="hidden" name="to" value={day} />
                   <input type="hidden" name="meal" value={meal.key} />
-                  <button className="btn text-caption muted hover:bg-surface-muted">Wie gestern</button>
+                  <PendingButton className="btn text-caption muted hover:bg-surface-muted">Wie gestern</PendingButton>
                 </form>
               )}
             </div>

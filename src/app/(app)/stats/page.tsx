@@ -4,7 +4,6 @@ import { requireUser } from "@/lib/auth";
 import { addDays, formatDay, today } from "@/lib/dates";
 import { fmt } from "@/lib/nutrition";
 import { getDailyTotals, getProfile, getStreak, getWeights } from "@/lib/queries";
-import { Icon } from "@/components/icons";
 
 export const metadata = { title: "Statistik" };
 
@@ -75,11 +74,15 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
 
       <section className="card flex items-center justify-around text-center">
         <div>
-          <p className="flex items-center gap-1 text-h1"><Icon name="streak" className="text-accent-calories" /> {streak.current}</p>
+          <p className="text-h1">
+            <span aria-hidden>🔥</span> {streak.current}
+          </p>
           <p className="text-caption muted">Tage in Folge</p>
         </div>
         <div>
-          <p className="text-2xl font-bold tabular-nums">{streak.longest}</p>
+          <p className="text-h1">
+            <span aria-hidden>🏆</span> {streak.longest}
+          </p>
           <p className="text-caption muted">Längste Serie</p>
         </div>
       </section>

@@ -11,6 +11,8 @@ import { fmt, MEALS } from "@/lib/nutrition";
 import { getFavoriteFoods, getRecentFoods, getRecipes, getSavedMeals, searchLocalFoods } from "@/lib/queries";
 import { Icon } from "@/components/icons";
 
+import { PendingButton } from "@/components/form-bits";
+
 export const metadata = { title: "Hinzufügen" };
 
 function parseMeal(value: unknown) {
@@ -71,14 +73,17 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
         <Link href={`/?day=${day}`} className="btn-secondary px-3" aria-label="Zurück">
           <Icon name="back" />
         </Link>
-        <h1 className="text-h1">{meal.label} hinzufügen</h1>
+        <h1 className="text-h1">
+          <span aria-hidden className="mr-1.5">{meal.emoji}</span>
+          {meal.label} hinzufügen
+        </h1>
       </header>
 
       <form className="flex gap-2" action="/add">
         <input type="hidden" name="day" value={day} />
         <input type="hidden" name="meal" value={meal.key} />
         <input className="input" name="q" type="search" defaultValue={q} placeholder="Lebensmittel suchen, z. B. Haferflocken" enterKeyHint="search" autoFocus={!q} />
-        <button className="btn-primary">Suchen</button>
+        <PendingButton className="btn-primary">Suchen</PendingButton>
       </form>
 
       <BarcodeScanner targetBase={ctx} />
@@ -124,7 +129,7 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
                       <input type="hidden" name="id" value={m.id} />
                       <input type="hidden" name="day" value={day} />
                       <input type="hidden" name="meal" value={meal.key} />
-                      <button className="btn-primary px-3 py-1.5 text-xs">Eintragen</button>
+                      <PendingButton className="btn-primary px-3 py-1.5 text-xs">Eintragen</PendingButton>
                     </form>
                   </li>
                 ))}

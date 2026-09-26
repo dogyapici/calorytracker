@@ -6,6 +6,8 @@ import { fmt, MEALS } from "@/lib/nutrition";
 import { getSavedMeals } from "@/lib/queries";
 import { Icon } from "@/components/icons";
 
+import { PendingButton } from "@/components/form-bits";
+
 export const metadata = { title: "Meine Mahlzeiten" };
 
 export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
@@ -38,7 +40,7 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
                 </div>
                 <form action={deleteSavedMeal}>
                   <input type="hidden" name="id" value={m.id} />
-                  <button className="btn-danger px-2 py-1 text-xs">Löschen</button>
+                  <PendingButton className="btn-danger px-2 py-1 text-xs">Löschen</PendingButton>
                 </form>
               </div>
             </li>

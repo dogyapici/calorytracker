@@ -4,6 +4,8 @@ import { getLatestWeight, getProfile } from "@/lib/queries";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { ProfileForm } from "./profile-form";
 
+import { PendingButton } from "@/components/form-bits";
+
 export const metadata = { title: "Profil & Ziele" };
 
 export default async function ProfilePage({ searchParams }: PageProps<"/profile">) {
@@ -16,7 +18,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
       <h1 className="text-h1">Profil & Ziele</h1>
       {welcome && (
         <p className="card border-primary text-sm">
-          Willkommen, {user.name}! Trage deine Daten ein und lass dir dein Kalorienziel berechnen.
+          Willkommen, {user.name}! 👋 Trage deine Daten ein und lass dir dein Kalorienziel berechnen.
         </p>
       )}
       <ProfileForm name={user.name} profile={profile} weightKg={weight?.kg ?? null} />
@@ -24,7 +26,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
       <div className="card flex items-center justify-between">
         <p className="text-sm muted">Angemeldet als {user.email}</p>
         <form action={logout}>
-          <button className="btn-secondary">Abmelden</button>
+          <PendingButton className="btn-secondary">Abmelden</PendingButton>
         </form>
       </div>
     </div>

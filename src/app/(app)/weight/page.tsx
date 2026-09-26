@@ -8,6 +8,8 @@ import { getPhotoVersions, getWeights } from "@/lib/queries";
 import { WeightForm } from "./weight-form";
 import { Icon } from "@/components/icons";
 
+import { PendingButton } from "@/components/form-bits";
+
 export const metadata = { title: "Gewicht" };
 
 type Weight = typeof weights.$inferSelect;
@@ -98,9 +100,9 @@ export default async function WeightPage() {
                 </a>
                 <form action={deleteWeightPhoto} className="text-center">
                   <input type="hidden" name="day" value={w.day} />
-                  <button className="text-[11px] text-text-tertiary hover:text-danger" aria-label={`Foto vom ${formatDay(w.day)} löschen`}>
+                  <PendingButton className="text-[11px] text-text-tertiary hover:text-danger" aria-label={`Foto vom ${formatDay(w.day)} löschen`}>
                     Foto löschen
-                  </button>
+                  </PendingButton>
                 </form>
               </li>
             ))}
@@ -130,9 +132,9 @@ export default async function WeightPage() {
                 <span className="font-semibold tabular-nums">{fmt(w.kg, 1)} kg</span>
                 <form action={deleteWeight}>
                   <input type="hidden" name="day" value={w.day} />
-                  <button className="btn px-2 py-1 text-text-tertiary hover:text-danger" aria-label="Eintrag löschen">
+                  <PendingButton className="btn px-2 py-1 text-text-tertiary hover:text-danger" aria-label="Eintrag löschen">
                     <Icon name="remove" size={20} />
-                  </button>
+                  </PendingButton>
                 </form>
               </li>
             );
