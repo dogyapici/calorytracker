@@ -9,7 +9,7 @@ export default function LoginPage() {
       <LoginForm />
       <p className="mt-6 text-center text-sm muted">
         Noch kein Konto?{" "}
-        <Link href="/register" className="font-semibold text-brand-600">
+        <Link href="/register" className="font-semibold text-primary">
           Mit Einladungscode registrieren
         </Link>
       </p>

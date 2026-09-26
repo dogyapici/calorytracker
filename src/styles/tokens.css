@@ -1,0 +1,158 @@
+/*
+ * Design-Tokens laut DESIGN.md. Jedes Theme setzt dieselben Variablen,
+ * Komponenten sprechen sie nur über die Tailwind-Namen aus globals.css an
+ * (z. B. bg-surface, text-text-secondary, stroke-accent-calories).
+ *
+ * Aktiv ist, was auf <html> steht: data-theme (Theme) und data-scheme
+ * (light/dark, aus der Modus-Wahl aufgelöst, siehe src/lib/theme.ts).
+ * Ein neues Theme = ein neuer Block für Light und einer für Dark.
+ */
+
+/* ---------- monochrome-luxe (Alternative) ---------- */
+
+[data-theme="monochrome-luxe"] {
+  --ds-bg: #fafaf9;
+  --ds-surface: #ffffff;
+  --ds-surface-muted: #f1f1ef;
+  --ds-border: #e6e6e3;
+  --ds-text-primary: #0e0f0e;
+  --ds-text-secondary: #5f615e;
+  --ds-text-tertiary: #9c9e9a;
+  --ds-primary: #1f4d3a;
+  --ds-primary-hover: #173b2c;
+  --ds-primary-soft: #e6eeea;
+  --ds-on-primary: #fafaf9;
+  --ds-inverse-surface: #0e0f0e;
+  --ds-inverse-text: #fafaf9;
+  --ds-accent-calories: #1f4d3a;
+  --ds-macro-protein: #1f4d3a;
+  --ds-macro-carbs: #b8a06a;
+  --ds-macro-fat: #8c7b6b;
+  --ds-success: #2e7d57;
+  --ds-warning: #b7791f;
+  --ds-danger: #b3261e;
+
+  /* Theme-Regeln: invertierte Hero-Karte, Ring ohne Verlauf, keine Kartenschatten */
+  --ds-hero-surface: var(--ds-inverse-surface);
+  --ds-hero-text: var(--ds-inverse-text);
+  --ds-hero-ring: #7fb89a;
+  --ds-ring-end: var(--ds-accent-calories);
+  --ds-shadow-card: none;
+  --ds-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="monochrome-luxe"][data-scheme="dark"] {
+  --ds-bg: #0e0f0e;
+  --ds-surface: #171817;
+  --ds-surface-muted: #222422;
+  --ds-border: #2c2e2c;
+  --ds-text-primary: #f4f4f2;
+  --ds-text-secondary: #a3a5a1;
+  --ds-text-tertiary: #6e706c;
+  --ds-primary: #7fb89a;
+  --ds-primary-hover: #93c6ab;
+  --ds-primary-soft: #1a2b23;
+  --ds-on-primary: #0e0f0e;
+  --ds-inverse-surface: #f4f4f2;
+  --ds-inverse-text: #0e0f0e;
+  --ds-accent-calories: #7fb89a;
+  --ds-macro-protein: #7fb89a;
+  --ds-macro-carbs: #d4be88;
+  --ds-macro-fat: #b3a291;
+  --ds-success: #5cbf8c;
+  --ds-warning: #d9a04a;
+  --ds-danger: #e0645c;
+
+  --ds-hero-ring: #1f4d3a;
+  --ds-shadow-elevated: none;
+}
+
+/* ---------- warm-minimal (Standard) ---------- */
+
+:where(:root),
+[data-theme="warm-minimal"] {
+  --ds-bg: #faf8f5;
+  --ds-surface: #ffffff;
+  --ds-surface-muted: #f2efea;
+  --ds-border: #e7e2da;
+  --ds-text-primary: #1f1d1b;
+  --ds-text-secondary: #6b665f;
+  --ds-text-tertiary: #91897f; /* AA-Anpassung, DESIGN.md: #A39D94 */
+  --ds-primary: #2f6b4f;
+  --ds-primary-hover: #255840;
+  --ds-primary-soft: #e3eee8;
+  --ds-on-primary: #ffffff;
+  --ds-inverse-surface: #1f1d1b;
+  --ds-inverse-text: #faf8f5;
+  --ds-accent-calories: #ff7a59;
+  --ds-macro-protein: #5b8def;
+  --ds-macro-carbs: #f2b544;
+  --ds-macro-fat: #e86a92;
+  --ds-success: #32805a; /* AA-Anpassung, DESIGN.md: #3FA372 */
+  --ds-warning: #a5631a; /* AA-Anpassung, DESIGN.md: #E0913A */
+  --ds-danger: #d33833; /* AA-Anpassung, DESIGN.md: #D9534F */
+
+  /* Theme-Regeln: keine invertierte Hero-Karte, Ring mit Verlauf, warme Schatten */
+  --ds-hero-surface: var(--ds-surface);
+  --ds-hero-text: var(--ds-text-primary);
+  --ds-hero-ring: var(--ds-accent-calories);
+  --ds-ring-end: var(--ds-macro-carbs);
+  --ds-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.05);
+  --ds-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="warm-minimal"][data-scheme="dark"] {
+  --ds-bg: #141312;
+  --ds-surface: #1e1c1a;
+  --ds-surface-muted: #292623;
+  --ds-border: #34302c;
+  --ds-text-primary: #f5f2ed;
+  --ds-text-secondary: #b3ada4;
+  --ds-text-tertiary: #7a746c;
+  --ds-primary: #6fb38f;
+  --ds-primary-hover: #84c3a1;
+  --ds-primary-soft: #22342b;
+  --ds-on-primary: #141312;
+  --ds-inverse-surface: #f5f2ed;
+  --ds-inverse-text: #141312;
+  --ds-accent-calories: #ff8a6b;
+  --ds-macro-protein: #7ba5f5;
+  --ds-macro-carbs: #f5c466;
+  --ds-macro-fat: #f084a6;
+  --ds-success: #5cbf8c;
+  --ds-warning: #f0a552;
+  --ds-danger: #e5645f;
+
+  --ds-shadow-card: none;
+  --ds-shadow-elevated: none;
+}
+
+/* ---------- für alle Themes ---------- */
+
+:root {
+  color-scheme: light dark;
+
+  /* Motion (DESIGN.md Abschnitt 6) */
+  --ds-duration-fast: 150ms;
+  --ds-duration-base: 200ms;
+  --ds-duration-slow: 250ms;
+  --ds-duration-progress: 600ms;
+  --ds-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-scheme="light"] {
+  color-scheme: light;
+}
+
+[data-scheme="dark"] {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ds-duration-fast: 0ms;
+    --ds-duration-base: 0ms;
+    --ds-duration-slow: 0ms;
+    --ds-duration-progress: 0ms;
+  }
+}

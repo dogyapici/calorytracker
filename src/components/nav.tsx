@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Icon, type IconName } from "./icons";
 
-const ITEMS = [
-  { href: "/", label: "Tagebuch", icon: "M4 5h16M4 12h16M4 19h10" },
-  { href: "/stats", label: "Statistik", icon: "M5 20V10M12 20V4M19 20v-7" },
-  { href: "/weight", label: "Gewicht", icon: "M6 7h12l2 13H4L6 7zm6-3a3 3 0 0 1 3 3H9a3 3 0 0 1 3-3z" },
-  { href: "/profile", label: "Profil", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 9a8 8 0 0 1 16 0" },
+const ITEMS: { href: string; label: string; icon: IconName }[] = [
+  { href: "/", label: "Tagebuch", icon: "diary" },
+  { href: "/stats", label: "Statistik", icon: "stats" },
+  { href: "/weight", label: "Gewicht", icon: "weight" },
+  { href: "/profile", label: "Profil", icon: "profile" },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -15,22 +16,25 @@ function isActive(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
+// Bottom Navigation: surface mit leichtem Blur, 1px border oben. Aktives Icon
+// in primary auf primary-soft-Pill, inaktive in text-tertiary.
 export function BottomNav() {
   const pathname = usePathname();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-zinc-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/95">
-      <ul className="mx-auto grid max-w-2xl grid-cols-4">
+    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
+      <ul className="mx-auto grid max-w-2xl grid-cols-4 px-2">
         {ITEMS.map((item) => {
           const active = isActive(pathname, item.href);
           return (
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`flex flex-col items-center gap-0.5 py-2 text-xs font-medium ${active ? "text-brand-600" : "text-zinc-500"}`}
+                aria-current={active ? "page" : undefined}
+                className={`flex min-h-touch flex-col items-center gap-0.5 pb-2 pt-1.5 text-caption ${active ? "text-primary" : "text-text-tertiary"}`}
               >
-                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d={item.icon} />
-                </svg>
+                <span className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors duration-200 ${active ? "bg-primary-soft" : ""}`}>
+                  <Icon name={item.icon} />
+                </span>
                 {item.label}
               </Link>
             </li>

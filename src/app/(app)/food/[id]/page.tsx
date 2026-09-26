@@ -7,6 +7,7 @@ import { dayOrToday } from "@/lib/dates";
 import { MICROS } from "@/lib/micros";
 import { fmt, MEALS } from "@/lib/nutrition";
 import { getOrImportBarcode, getRecipe, getVisibleFood, isFavorite } from "@/lib/queries";
+import { Icon } from "@/components/icons";
 
 export const metadata = { title: "Lebensmittel" };
 
@@ -45,16 +46,16 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
     <div className="space-y-4">
       <header className="flex items-start gap-3">
         <Link href={`/add?day=${day}&meal=${meal}`} className="btn-secondary px-3" aria-label="Zurück">
-          ‹
+          <Icon name="back" />
         </Link>
         <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-bold leading-tight">{food.name}</h1>
+          <h1 className="text-h2">{food.name}</h1>
           <p className="text-sm muted">{[food.brand, food.source === "custom" ? "Eigenes Lebensmittel" : food.source === "recipe" ? "Rezept" : null].filter(Boolean).join(" · ")}</p>
         </div>
         <form action={toggleFavorite}>
           <input type="hidden" name="foodId" value={food.id} />
-          <button className={`btn px-3 text-xl ${favorite ? "text-amber-500" : "text-zinc-400"}`} aria-label={favorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"}>
-            {favorite ? "★" : "☆"}
+          <button className={`btn px-3 text-xl ${favorite ? "text-macro-carbs" : "text-text-tertiary"}`} aria-label={favorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"}>
+            <Icon name="star" filled={favorite} />
           </button>
         </form>
       </header>
@@ -72,21 +73,21 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
       {recipe && (
         <section className="card">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-semibold">Zutaten</h2>
-            <Link href={`/recipes/${food.id}?day=${day}&meal=${meal}`} className="text-sm font-semibold text-brand-600">
+            <h2 className="text-h3">Zutaten</h2>
+            <Link href={`/recipes/${food.id}?day=${day}&meal=${meal}`} className="text-sm font-semibold text-primary">
               Bearbeiten
             </Link>
           </div>
           <ul className="text-sm">
             {recipe.ingredients.map(({ food: ing, grams }, i) => (
-              <li key={i} className="flex justify-between gap-3 border-t border-zinc-100 py-1.5 first:border-0 dark:border-zinc-800">
+              <li key={i} className="flex justify-between gap-3 border-t border-border py-1.5 first:border-0">
                 <span className="truncate">{ing.name}</span>
                 <span className="shrink-0 tabular-nums muted">{fmt(grams)} g</span>
               </li>
             ))}
           </ul>
           {food.recipeServings && food.recipeServings > 1 && (
-            <p className="mt-2 text-xs muted">
+            <p className="mt-2 text-caption muted">
               Ergibt {food.recipeServings} Portionen à {fmt(food.servingGrams ?? 0)} g.
             </p>
           )}
@@ -94,13 +95,13 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
       )}
 
       <section className="card">
-        <h2 className="mb-2 font-semibold">Nährwerte pro 100 g</h2>
+        <h2 className="mb-2 text-h3">Nährwerte pro 100 g</h2>
         <table className="w-full text-sm">
           <tbody>
             {rows
               .filter(([, v]) => v !== null)
               .map(([label, value, unit]) => (
-                <tr key={label} className="border-t border-zinc-100 first:border-0 dark:border-zinc-800">
+                <tr key={label} className="border-t border-border first:border-0">
                   <td className={`py-1.5 ${label.startsWith("davon") ? "pl-4 muted" : ""}`}>{label}</td>
                   <td className="py-1.5 text-right tabular-nums">
                     {fmt(value as number, 1)} {unit}
@@ -110,7 +111,7 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
           </tbody>
         </table>
         {food.barcode && (
-          <p className="mt-3 text-xs muted">
+          <p className="mt-3 text-caption muted">
             Quelle:{" "}
             <a className="underline" href={`https://de.openfoodfacts.org/produkt/${food.barcode}`} target="_blank" rel="noreferrer">
               Open Food Facts
@@ -121,14 +122,14 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
       </section>
 
       <section className="card">
-        <h2 className="mb-1 font-semibold">Vitamine und Mineralstoffe pro 100 g</h2>
+        <h2 className="mb-1 text-h3">Vitamine und Mineralstoffe pro 100 g</h2>
         {microRows.length ? (
           <>
-            <p className="mb-2 text-xs muted">Prozent vom Tagesbedarf eines Erwachsenen (DGE, gerundet).</p>
+            <p className="mb-2 text-caption muted">Prozent vom Tagesbedarf eines Erwachsenen (DGE, gerundet).</p>
             <table className="w-full text-sm">
               <tbody>
                 {microRows.map((m) => (
-                  <tr key={m.key} className="border-t border-zinc-100 first:border-0 dark:border-zinc-800">
+                  <tr key={m.key} className="border-t border-border first:border-0">
                     <td className="py-1.5">{m.label}</td>
                     <td className="py-1.5 text-right tabular-nums">
                       {fmt(m.value, m.value < 10 ? 2 : 0)} {m.unit}

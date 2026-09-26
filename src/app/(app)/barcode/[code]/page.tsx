@@ -23,7 +23,7 @@ export default async function BarcodePage({ params, searchParams }: PageProps<"/
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-bold">Barcode {code}</h1>
+      <h1 className="text-h1">Barcode {code}</h1>
       <p className="card text-sm">
         {failed
           ? "Open Food Facts ist gerade nicht erreichbar. Versuche es gleich noch einmal."

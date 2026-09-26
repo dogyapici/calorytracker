@@ -3,6 +3,7 @@
 import { useActionState, useRef, useState } from "react";
 import { logWeight, type FormState } from "@/app/actions";
 import { FormMessage, SubmitButton } from "@/components/form-bits";
+import { Icon } from "@/components/icons";
 
 const MEASURES = [
   ["waistCm", "Taille (cm)"],
@@ -70,10 +71,10 @@ export function WeightForm({ today, lastKg }: { today: string; lastKg: number | 
         </div>
       </div>
 
-      <details className="group rounded-xl border border-zinc-200 px-3 py-2 dark:border-zinc-800">
+      <details className="group rounded-button border border-border px-3 py-2">
         <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium">
           Körpermaße (optional)
-          <span className="muted transition group-open:rotate-180">▾</span>
+          <Icon name="expand" size={20} className="text-text-secondary transition group-open:rotate-180" />
         </summary>
         <div className="mt-3 grid grid-cols-2 gap-3">
           {MEASURES.map(([key, label]) => (
@@ -88,22 +89,19 @@ export function WeightForm({ today, lastKg }: { today: string; lastKg: number | 
       <div className="space-y-2">
         <input type="hidden" name="photo" value={photo} />
         <label className="btn-secondary w-full cursor-pointer">
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-            <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
-            <circle cx="12" cy="13" r="3.5" />
-          </svg>
+          <Icon name="camera" size={20} />
           {photo ? "Anderes Foto wählen" : "Foto hinzufügen (optional)"}
           <input ref={fileRef} type="file" accept="image/*" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
         </label>
         {busy && <p className="text-sm muted">Foto wird vorbereitet…</p>}
-        {photoError && <p className="text-sm text-red-600">{photoError}</p>}
+        {photoError && <p className="text-sm text-danger">{photoError}</p>}
         {photo && (
           <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photo} alt="Vorschau deines Fotos" className="max-h-72 w-full rounded-xl object-contain bg-zinc-100 dark:bg-zinc-800" />
+            <img src={photo} alt="Vorschau deines Fotos" className="max-h-72 w-full rounded-button object-contain bg-surface-muted" />
             <button
               type="button"
-              className="btn absolute right-2 top-2 bg-white/90 px-2 py-1 text-xs dark:bg-zinc-900/90"
+              className="btn absolute right-2 top-2 bg-surface/90 px-2 py-1 text-xs"
               onClick={() => {
                 setPhoto("");
                 if (fileRef.current) fileRef.current.value = "";
@@ -113,7 +111,7 @@ export function WeightForm({ today, lastKg }: { today: string; lastKg: number | 
             </button>
           </div>
         )}
-        <p className="text-xs muted">Das Foto sieht nur du. Es wird verkleinert gespeichert, Standortdaten werden entfernt.</p>
+        <p className="text-caption muted">Das Foto sieht nur du. Es wird verkleinert gespeichert, Standortdaten werden entfernt.</p>
       </div>
 
       <FormMessage state={state} />

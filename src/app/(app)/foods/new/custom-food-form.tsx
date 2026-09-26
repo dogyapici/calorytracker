@@ -31,7 +31,7 @@ export function CustomFoodForm({ day, meal }: { day: string; meal: string }) {
         </div>
       </div>
       <div className="card space-y-3">
-        <h2 className="font-semibold">Nährwerte pro 100 g</h2>
+        <h2 className="text-h3">Nährwerte pro 100 g</h2>
         <div className="grid grid-cols-2 gap-3">
           {NUTRIENTS.map(([key, label, required]) => (
             <div key={key}>
@@ -42,7 +42,7 @@ export function CustomFoodForm({ day, meal }: { day: string; meal: string }) {
         </div>
       </div>
       <div className="card space-y-3">
-        <h2 className="font-semibold">Portion (optional)</h2>
+        <h2 className="text-h3">Portion (optional)</h2>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label" htmlFor="servingGrams">Gramm pro Portion</label>

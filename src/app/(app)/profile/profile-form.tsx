@@ -86,7 +86,7 @@ export function ProfileForm({ name, profile, weightKg }: { name: string; profile
   return (
     <form action={action} className="space-y-4">
       <div className="card space-y-3">
-        <h2 className="font-semibold">Über dich</h2>
+        <h2 className="text-h3">Über dich</h2>
         <div>
           <label className="label" htmlFor="name">Name</label>
           <input className="input" id="name" name="name" defaultValue={name} required />
@@ -137,7 +137,7 @@ export function ProfileForm({ name, profile, weightKg }: { name: string; profile
 
       <div className="card space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-semibold">Tagesziele</h2>
+          <h2 className="text-h3">Tagesziele</h2>
           {suggestion && (
             <button type="button" className="btn-secondary px-3 py-1.5 text-xs" onClick={() => applySuggestion(suggestion)}>
               Vorschlag übernehmen
@@ -161,7 +161,7 @@ export function ProfileForm({ name, profile, weightKg }: { name: string; profile
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm font-medium">Makros angeben in</span>
           <input type="hidden" name="macroMode" value={mode} />
-          <div className="flex rounded-xl border border-zinc-300 p-0.5 dark:border-zinc-700" role="radiogroup" aria-label="Makros angeben in">
+          <div className="flex rounded-button border border-border p-0.5" role="radiogroup" aria-label="Makros angeben in">
             {(
               [
                 ["percent", "Prozent"],
@@ -174,7 +174,7 @@ export function ProfileForm({ name, profile, weightKg }: { name: string; profile
                 role="radio"
                 aria-checked={mode === m}
                 onClick={() => switchMode(m)}
-                className={`rounded-lg px-3 py-1 text-sm font-medium ${mode === m ? "bg-brand-600 text-white" : ""}`}
+                className={`rounded-chip px-3 py-1 text-sm font-medium ${mode === m ? "bg-primary text-on-primary" : ""}`}
               >
                 {label}
               </button>
@@ -205,7 +205,7 @@ export function ProfileForm({ name, profile, weightKg }: { name: string; profile
         </div>
 
         <div
-          className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm ${check.ok ? "bg-brand-50 text-brand-700 dark:bg-brand-700/20 dark:text-brand-100" : "bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-200"}`}
+          className={`flex items-center justify-between gap-3 rounded-button px-3 py-2 text-sm ${check.ok ? "bg-primary-soft text-primary" : "bg-warning/10 text-warning"}`}
           aria-live="polite"
         >
           <span>

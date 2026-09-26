@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
 import { fmt, MEALS } from "@/lib/nutrition";
 import { getRecipes } from "@/lib/queries";
+import { Icon } from "@/components/icons";
 
 export const metadata = { title: "Rezepte" };
 
@@ -19,9 +20,9 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
     <div className="space-y-4">
       <header className="flex items-center gap-3">
         <Link href={`/add${ctx}`} className="btn-secondary px-3" aria-label="Zurück">
-          ‹
+          <Icon name="back" />
         </Link>
-        <h1 className="text-lg font-bold">Meine Rezepte</h1>
+        <h1 className="text-h1">Meine Rezepte</h1>
       </header>
       <Link href={`/recipes/new${ctx}`} className="btn-primary w-full">
         + Neues Rezept
