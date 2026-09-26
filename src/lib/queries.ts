@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq, gte, ilike, inArray, isNull, lte, max, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { entries, favorites, foods, profiles, recipeIngredients, savedMealItems, savedMeals, weights, type Food } from "@/db/schema";
+import { entries, favorites, foods, profiles, recipeIngredients, savedMealItems, savedMeals, weightPhotos, weights, type Food } from "@/db/schema";
 import { today } from "./dates";
 import { fetchProduct, type OffFood } from "./off";
 import { computeStreak } from "./streak";
@@ -195,4 +195,13 @@ export async function getStreak(userId: number) {
     rows.map((r) => r.day),
     today(),
   );
+}
+
+/** When each of the user's progress photos was last changed, by day (for versioned image URLs). */
+export async function getPhotoVersions(userId: number) {
+  const rows = await db
+    .select({ day: weightPhotos.day, createdAt: weightPhotos.createdAt })
+    .from(weightPhotos)
+    .where(eq(weightPhotos.userId, userId));
+  return new Map(rows.map((r) => [r.day, r.createdAt.getTime()]));
 }

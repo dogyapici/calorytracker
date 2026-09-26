@@ -5,12 +5,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/db";
-import { entries, favorites, foods, profiles, users, weights } from "@/db/schema";
+import { entries, favorites, foods, profiles, users, weightPhotos, weights } from "@/db/schema";
 import { createSession, destroySession, requireUser } from "@/lib/auth";
 import { dayOrToday, isIsoDay, today } from "@/lib/dates";
-import { scaleFood } from "@/lib/nutrition";
+import { checkMacros, scaleFood } from "@/lib/nutrition";
 import { scaleMicros } from "@/lib/micros";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { decodePhoto } from "@/lib/photo";
 import { getLatestWeight, getVisibleFood } from "@/lib/queries";
 
 // `values` echoes submitted fields back so a form keeps its input after a validation error
@@ -269,10 +270,11 @@ const profileSchema = z.object({
   heightCm: optionalDecimal,
   activityFactor: decimal.pipe(z.number().min(1).max(2.5)),
   goal: z.enum(["lose", "maintain", "gain"]),
-  kcalTarget: z.coerce.number().int().min(800, "Das Kalorienziel ist zu niedrig.").max(8000),
-  proteinTarget: z.coerce.number().int().min(0).max(600),
-  carbsTarget: z.coerce.number().int().min(0).max(1500),
-  fatTarget: z.coerce.number().int().min(0).max(600),
+  kcalTarget: z.coerce.number().int().min(800, "Das Kalorienziel muss mindestens 800 kcal sein.").max(8000, "Das Kalorienziel darf höchstens 8.000 kcal sein."),
+  macroMode: z.enum(["percent", "grams"]),
+  protein: decimal,
+  carbs: decimal,
+  fat: decimal,
   weightKg: optionalDecimal.pipe(z.number().min(20).max(400).optional()),
 });
 
@@ -282,7 +284,21 @@ export async function saveProfile(_: FormState, formData: FormData): Promise<For
   for (const key of ["sex", "birthYear"]) if (raw[key] === "") delete raw[key];
   const parsed = profileSchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
-  const { name, weightKg, ...profile } = parsed.data;
+  const { name, weightKg, macroMode, protein, carbs, fat, ...rest } = parsed.data;
+
+  // Macro targets must always add up to the calorie target, whichever way they were entered.
+  const macros = checkMacros(rest.kcalTarget, macroMode, { protein, carbs, fat });
+  if (!macros.ok) return { error: macros.error };
+  const profile = {
+    ...rest,
+    macroMode,
+    proteinTarget: macros.grams.protein,
+    carbsTarget: macros.grams.carbs,
+    fatTarget: macros.grams.fat,
+    proteinPct: macros.percent.protein,
+    carbsPct: macros.percent.carbs,
+    fatPct: macros.percent.fat,
+  };
 
   // Only log a weight when it changed, so saving the profile does not add a new data point each day.
   const latest = await getLatestWeight(user.id);
@@ -302,21 +318,57 @@ export async function saveProfile(_: FormState, formData: FormData): Promise<For
   return { ok: "Gespeichert." };
 }
 
+const measurement = optionalDecimal.pipe(z.number().min(10, "Bitte prüfe deine Körpermaße.").max(300, "Bitte prüfe deine Körpermaße.").optional());
+
 const weightSchema = z.object({
   day: z.string().refine(isIsoDay, "Ungültiges Datum."),
   kg: decimal.pipe(z.number().min(20, "Bitte gib ein gültiges Gewicht ein.").max(400, "Bitte gib ein gültiges Gewicht ein.")),
+  waistCm: measurement,
+  hipCm: measurement,
+  chestCm: measurement,
+  armCm: measurement,
+  thighCm: measurement,
+  bodyFatPct: optionalDecimal.pipe(z.number().min(2, "Bitte prüfe den Körperfettanteil.").max(70, "Bitte prüfe den Körperfettanteil.").optional()),
 });
 
 export async function logWeight(_: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser();
-  const parsed = weightSchema.safeParse(formObject(formData));
-  if (!parsed.success) return fail(parsed.error.issues[0].message, formData, []);
-  await db
-    .insert(weights)
-    .values({ userId: user.id, ...parsed.data })
-    .onConflictDoUpdate({ target: [weights.userId, weights.day], set: { kg: parsed.data.kg } });
+  const { photo: photoField, ...fields } = formObject(formData);
+  const parsed = weightSchema.safeParse(fields);
+  if (!parsed.success) return fail(parsed.error.issues[0].message, formData, ["photo"]);
+  const { day, kg, ...measures } = parsed.data;
+
+  let photo: { mimeType: string; data: Buffer } | null = null;
+  if (typeof photoField === "string" && photoField) {
+    const decoded = decodePhoto(photoField);
+    if ("error" in decoded) return fail(decoded.error, formData, ["photo"]);
+    photo = decoded;
+  }
+
+  // Logging the same day again updates it; measurements left empty keep their earlier value.
+  const given = Object.fromEntries(Object.entries(measures).filter(([, v]) => v !== undefined));
+  await db.transaction(async (tx) => {
+    await tx
+      .insert(weights)
+      .values({ userId: user.id, day, kg, ...given })
+      .onConflictDoUpdate({ target: [weights.userId, weights.day], set: { kg, ...given } });
+    if (photo) {
+      await tx
+        .insert(weightPhotos)
+        .values({ userId: user.id, day, ...photo })
+        .onConflictDoUpdate({ target: [weightPhotos.userId, weightPhotos.day], set: { ...photo, createdAt: new Date() } });
+    }
+  });
   revalidatePath("/weight");
-  return { ok: "Gewicht gespeichert." };
+  return { ok: photo ? "Gewicht und Foto gespeichert." : "Gewicht gespeichert." };
+}
+
+export async function deleteWeightPhoto(formData: FormData) {
+  const user = await requireUser();
+  const day = String(formData.get("day"));
+  if (!isIsoDay(day)) return;
+  await db.delete(weightPhotos).where(and(eq(weightPhotos.userId, user.id), eq(weightPhotos.day, day)));
+  revalidatePath("/weight");
 }
 
 export async function deleteWeight(formData: FormData) {

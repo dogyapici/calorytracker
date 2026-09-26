@@ -153,3 +153,75 @@ export function scaleFood(food: FullNutrients & { micros?: Micros | null }, gram
     micros: scaleMicros(food.micros, f),
   };
 }
+
+// ---------- Macro targets ----------
+
+export type MacroMode = "percent" | "grams";
+export type Macros = { protein: number; carbs: number; fat: number };
+
+export const KCAL_PER_GRAM: Macros = { protein: 4, carbs: 4, fat: 9 };
+
+export function kcalFromMacros(g: Macros) {
+  return g.protein * KCAL_PER_GRAM.protein + g.carbs * KCAL_PER_GRAM.carbs + g.fat * KCAL_PER_GRAM.fat;
+}
+
+export function gramsFromPercent(kcal: number, pct: Macros): Macros {
+  return {
+    protein: Math.round((kcal * pct.protein) / 100 / KCAL_PER_GRAM.protein),
+    carbs: Math.round((kcal * pct.carbs) / 100 / KCAL_PER_GRAM.carbs),
+    fat: Math.round((kcal * pct.fat) / 100 / KCAL_PER_GRAM.fat),
+  };
+}
+
+export function percentFromGrams(g: Macros): Macros {
+  const total = kcalFromMacros(g);
+  if (total <= 0) return { protein: 0, carbs: 0, fat: 0 };
+  const pct = (k: keyof Macros) => Math.round(((g[k] * KCAL_PER_GRAM[k]) / total) * 1000) / 10;
+  return { protein: pct("protein"), carbs: pct("carbs"), fat: pct("fat") };
+}
+
+/** How far gram targets may miss the calorie target (rounding to whole grams alone can cost ~8 kcal). */
+export function macroTolerance(kcal: number) {
+  return Math.max(15, kcal * 0.01);
+}
+
+export type MacroCheck =
+  | { ok: true; grams: Macros; percent: Macros }
+  | { ok: false; error: string };
+
+/**
+ * Validates macro targets against the calorie target and returns both representations.
+ * Percent mode: the three shares must add up to 100 %. Gram mode: the grams must add up to the
+ * calorie target (within rounding tolerance). Either way the stored grams always match the kcal.
+ */
+export function checkMacros(kcal: number, mode: MacroMode, values: Macros): MacroCheck {
+  const nums = [values.protein, values.carbs, values.fat];
+  if (!(kcal > 0)) return { ok: false, error: "Bitte gib zuerst ein gültiges Kalorienziel ein." };
+  if (nums.some((n) => !Number.isFinite(n) || n < 0)) {
+    return { ok: false, error: "Makroziele dürfen nicht negativ oder leer sein." };
+  }
+
+  if (mode === "percent") {
+    const sum = values.protein + values.carbs + values.fat;
+    if (Math.abs(sum - 100) > 0.5) {
+      return { ok: false, error: `Die Anteile ergeben ${fmt(sum, 1)} %. Zusammen müssen es 100 % sein.` };
+    }
+    return { ok: true, grams: gramsFromPercent(kcal, values), percent: values };
+  }
+
+  const macroKcal = kcalFromMacros(values);
+  const diff = macroKcal - kcal;
+  if (Math.abs(diff) > macroTolerance(kcal)) {
+    return {
+      ok: false,
+      error: `Deine Makros ergeben ${fmt(macroKcal)} kcal, dein Ziel sind ${fmt(kcal)} kcal (${diff > 0 ? "+" : ""}${fmt(diff)} kcal). Passe die Gramm an.`,
+    };
+  }
+  return { ok: true, grams: values, percent: percentFromGrams(values) };
+}
+
+/** Gram targets with carbs changed so the total matches `kcal`; null if protein and fat alone exceed it. */
+export function balanceCarbs(kcal: number, g: Macros): Macros | null {
+  const carbs = Math.round((kcal - g.protein * KCAL_PER_GRAM.protein - g.fat * KCAL_PER_GRAM.fat) / KCAL_PER_GRAM.carbs);
+  return carbs < 0 ? null : { ...g, carbs };
+}
