@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq, gte, ilike, isNull, lte, max, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { entries, favorites, foods, profiles, weights, type Food } from "@/db/schema";
+import { entries, favorites, foods, profiles, recipeIngredients, weights, type Food } from "@/db/schema";
 import type { OffFood } from "./off";
 
 export async function getProfile(userId: number) {
@@ -119,4 +119,28 @@ export async function getWeights(userId: number, limit = 365) {
 export async function getLatestWeight(userId: number) {
   const [row] = await getWeights(userId, 1);
   return row ?? null;
+}
+
+export async function getRecipes(userId: number) {
+  return db
+    .select()
+    .from(foods)
+    .where(and(eq(foods.ownerId, userId), eq(foods.source, "recipe")))
+    .orderBy(asc(foods.name));
+}
+
+/** A recipe owned by the user with its ingredients in order, or null. */
+export async function getRecipe(userId: number, recipeId: number) {
+  const [recipe] = await db
+    .select()
+    .from(foods)
+    .where(and(eq(foods.id, recipeId), eq(foods.ownerId, userId), eq(foods.source, "recipe")));
+  if (!recipe) return null;
+  const ingredients = await db
+    .select({ grams: recipeIngredients.grams, food: foods })
+    .from(recipeIngredients)
+    .innerJoin(foods, eq(foods.id, recipeIngredients.foodId))
+    .where(eq(recipeIngredients.recipeId, recipeId))
+    .orderBy(asc(recipeIngredients.position));
+  return { recipe, ingredients };
 }

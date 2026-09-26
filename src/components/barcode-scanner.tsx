@@ -14,14 +14,30 @@ async function createDetector(): Promise<Detector> {
   return new BarcodeDetector({ formats: formats as never[] });
 }
 
-export function BarcodeScanner({ targetBase }: { targetBase: string }) {
+/**
+ * Scans EAN/UPC barcodes with the camera. By default it navigates to the barcode page;
+ * pass `onCode` to handle the code in place instead (e.g. in the recipe editor).
+ */
+export function BarcodeScanner({ targetBase = "", onCode }: { targetBase?: string; onCode?: (code: string) => void }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manual, setManual] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const go = (code: string) => router.push(`/barcode/${encodeURIComponent(code)}${targetBase}`);
+  const go = (code: string) => {
+    if (onCode) {
+      setOpen(false);
+      setManual("");
+      onCode(code);
+    } else {
+      router.push(`/barcode/${encodeURIComponent(code)}${targetBase}`);
+    }
+  };
+
+  const submitManual = () => {
+    if (/^\d{8,14}$/.test(manual.trim())) go(manual.trim());
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -88,22 +104,25 @@ export function BarcodeScanner({ targetBase }: { targetBase: string }) {
         <div className="pointer-events-none absolute inset-x-8 top-1/2 h-0.5 -translate-y-1/2 bg-red-500/80" />
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
-      <form
-        className="flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (/^\d{8,14}$/.test(manual.trim())) go(manual.trim());
-        }}
-      >
+      {/* Not a <form>: the scanner may sit inside another form (recipe editor). */}
+      <div className="flex gap-2">
         <input
           className="input"
           inputMode="numeric"
           placeholder="Barcode eingeben"
           value={manual}
           onChange={(e) => setManual(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              submitManual();
+            }
+          }}
         />
-        <button className="btn-secondary">OK</button>
-      </form>
+        <button type="button" className="btn-secondary" onClick={submitManual}>
+          OK
+        </button>
+      </div>
       <button type="button" className="btn w-full muted" onClick={() => setOpen(false)}>
         Schließen
       </button>

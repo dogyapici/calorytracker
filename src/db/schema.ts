@@ -15,7 +15,7 @@ import {
 export const sexEnum = pgEnum("sex", ["male", "female"]);
 export const goalEnum = pgEnum("goal", ["lose", "maintain", "gain"]);
 export const mealEnum = pgEnum("meal", ["breakfast", "lunch", "dinner", "snack"]);
-export const foodSourceEnum = pgEnum("food_source", ["off", "custom"]);
+export const foodSourceEnum = pgEnum("food_source", ["off", "custom", "recipe"]);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -76,6 +76,9 @@ export const foods = pgTable(
     servingGrams: real("serving_grams"),
     servingLabel: text("serving_label"),
     imageUrl: text("image_url"),
+    // Recipes only: how many portions the recipe makes, and the weight after cooking if the cook weighed it.
+    recipeServings: integer("recipe_servings"),
+    recipeCookedGrams: real("recipe_cooked_grams"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("foods_barcode_idx").on(t.barcode), index("foods_owner_idx").on(t.ownerId)],
@@ -126,6 +129,22 @@ export const favorites = pgTable(
       .references(() => foods.id, { onDelete: "cascade" }),
   },
   (t) => [primaryKey({ columns: [t.userId, t.foodId] })],
+);
+
+export const recipeIngredients = pgTable(
+  "recipe_ingredients",
+  {
+    id: serial("id").primaryKey(),
+    recipeId: integer("recipe_id")
+      .notNull()
+      .references(() => foods.id, { onDelete: "cascade" }),
+    foodId: integer("food_id")
+      .notNull()
+      .references(() => foods.id, { onDelete: "cascade" }),
+    grams: real("grams").notNull(),
+    position: integer("position").notNull().default(0),
+  },
+  (t) => [index("recipe_ingredients_recipe_idx").on(t.recipeId)],
 );
 
 export type Food = typeof foods.$inferSelect;
