@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { getLatestWeight, getProfile } from "@/lib/queries";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { ProfileForm } from "./profile-form";
+import { TrackingGoalsForm } from "./tracking-goals-form";
 
 import { PendingButton } from "@/components/form-bits";
 
@@ -22,6 +23,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
         </p>
       )}
       <ProfileForm name={user.name} profile={profile} weightKg={weight?.kg ?? null} />
+      <TrackingGoalsForm kcalTarget={profile.kcalTarget} mealSplit={profile.mealSplit} waterTargetMl={profile.waterTargetMl} />
       <ThemeSwitcher />
       <div className="card flex items-center justify-between">
         <p className="text-sm muted">Angemeldet als {user.email}</p>

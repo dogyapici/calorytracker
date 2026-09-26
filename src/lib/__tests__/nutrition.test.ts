@@ -139,3 +139,14 @@ describe("macro targets", () => {
     expect(checkMacros(t.kcal, "grams", t).ok).toBe(true);
   });
 });
+
+describe("meal split", () => {
+  it("accepts whole percentages adding up to 100", async () => {
+    const { checkMealSplit, DEFAULT_MEAL_SPLIT, mealTarget } = await import("../nutrition");
+    expect(checkMealSplit(DEFAULT_MEAL_SPLIT).ok).toBe(true);
+    expect(checkMealSplit({ breakfast: 30, lunch: 30, dinner: 30, snack: 5 })).toEqual({ ok: false, error: "Die Anteile ergeben 95 %, es müssen genau 100 % sein." });
+    expect(checkMealSplit({ breakfast: 25.5, lunch: 34.5, dinner: 30, snack: 10 }).ok).toBe(false);
+    expect(mealTarget(2000, DEFAULT_MEAL_SPLIT, "lunch")).toBe(700);
+    expect(mealTarget(2000, null, "lunch")).toBeNull();
+  });
+});

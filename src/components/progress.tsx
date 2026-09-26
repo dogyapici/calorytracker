@@ -76,3 +76,29 @@ export function MacroRow({ label, value, target, color }: { label: string; value
     </div>
   );
 }
+
+// Kleiner Ring für das Kalorienziel einer Mahlzeit.
+export function MiniRing({ value, target, size = 30 }: { value: number; target: number; size?: number }) {
+  const stroke = 4;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const pct = target > 0 ? Math.min(1, value / target) : 0;
+  const over = target > 0 && value > target;
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="shrink-0 -rotate-90" aria-hidden>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-surface-muted" />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        strokeDasharray={c}
+        strokeDashoffset={c * (1 - pct)}
+        className={`animate-ring ${over ? "stroke-warning" : "stroke-accent-calories"}`}
+        style={{ ["--ring-from" as string]: c }}
+      />
+    </svg>
+  );
+}

@@ -2,17 +2,18 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { copyMeal } from "@/app/actions";
 import { NutrientDetails } from "@/components/nutrient-details";
-import { CalorieRing, MacroRow } from "@/components/progress";
+import { CalorieRing, MacroRow, MiniRing } from "@/components/progress";
 import { requireUser } from "@/lib/auth";
 import { addDays, dayOrToday, formatDay, today } from "@/lib/dates";
-import { fmt, MEALS, sumNutrients } from "@/lib/nutrition";
-import { getEntriesForDay, getProfile, getStreak } from "@/lib/queries";
+import { fmt, MEALS, mealTarget, sumNutrients } from "@/lib/nutrition";
+import { getEntriesForDay, getProfile, getStreak, getWater } from "@/lib/queries";
 import { Icon } from "@/components/icons";
 
 import { PendingButton } from "@/components/form-bits";
 import { CollapsibleMeal } from "./_diary/collapsible-meal";
 import { CLOSED_MEALS_COOKIE } from "./_diary/constants";
 import { SwipeToDelete } from "./_diary/swipe-to-delete";
+import { WaterTracker } from "./_diary/water-tracker";
 
 export const metadata = { title: "Tagebuch" };
 
@@ -20,10 +21,11 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
   const { day: dayParam } = await searchParams;
   const day = dayOrToday(dayParam);
-  const [profile, dayEntries, streak] = await Promise.all([
+  const [profile, dayEntries, streak, waterMl] = await Promise.all([
     getProfile(user.id),
     getEntriesForDay(user.id, day),
     getStreak(user.id),
+    getWater(user.id, day),
   ]);
   const closedMeals = new Set(decodeURIComponent((await cookies()).get(CLOSED_MEALS_COOKIE)?.value ?? "").split(","));
   const total = sumNutrients(dayEntries);
@@ -37,11 +39,14 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
           <Icon name="back" />
         </Link>
         <div className="text-center">
-          <h1 className="text-h2">{isToday ? "Heute" : formatDay(day)}</h1>
+          <Link href={`/calendar?month=${day.slice(0, 7)}`} className="inline-flex items-center gap-1.5 rounded-chip px-2 py-0.5 hover:bg-surface-muted" aria-label="Kalender öffnen">
+            <h1 className="text-h2">{isToday ? "Heute" : formatDay(day)}</h1>
+            <Icon name="calendar" size={20} className="text-text-secondary" />
+          </Link>
           {isToday ? (
             <p className="text-caption muted">{formatDay(day)}</p>
           ) : (
-            <Link href="/" className="text-xs font-semibold text-primary">
+            <Link href="/" className="block text-xs font-semibold text-primary">
               Zu heute
             </Link>
           )}
@@ -75,12 +80,15 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
         </div>
       </section>
 
+      <WaterTracker day={day} ml={waterMl} targetMl={profile.waterTargetMl} />
+
       <NutrientDetails entries={dayEntries} kcalTarget={profile.kcalTarget} />
 
       {MEALS.map((meal) => {
         const items = dayEntries.filter((e) => e.meal === meal.key);
         const mealKcal = items.reduce((s, e) => s + e.kcal, 0);
         const addHref = `/add?day=${day}&meal=${meal.key}`;
+        const target = mealTarget(profile.kcalTarget, profile.mealSplit, meal.key);
         return (
           <CollapsibleMeal
             key={meal.key}
@@ -94,9 +102,12 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
               </>
             }
             summary={
-              <span className="text-body font-semibold tabular-nums">
-                {fmt(mealKcal)}
-                <span className="ml-0.5 text-caption muted">kcal</span>
+              <span className="flex items-center gap-2">
+                <span className="text-right text-body font-semibold tabular-nums">
+                  {fmt(mealKcal)}
+                  <span className="ml-0.5 text-caption muted">{target ? `/ ${fmt(target)} kcal` : "kcal"}</span>
+                </span>
+                {target !== null && <MiniRing value={mealKcal} target={target} />}
               </span>
             }
           >
