@@ -27,19 +27,20 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
   const meal = parseMeal(sp.meal);
   const q = typeof sp.q === "string" ? sp.q.trim().slice(0, 100) : "";
   const ctx = `?${new URLSearchParams({ day, meal: meal.key })}`;
+  // Treffer merken sich die Suche, damit „Zurück“ auf der Produktseite wieder hierher führt.
+  const resultCtx = q ? `?${new URLSearchParams({ day, meal: meal.key, q })}` : ctx;
 
   if (/^\d{8,14}$/.test(q)) redirect(`/barcode/${q}${ctx}`);
 
   const localItem = (f: Food): FoodListItem => ({
     key: `f${f.id}`,
-    href: `/food/${f.id}${ctx}`,
+    href: `/food/${f.id}${resultCtx}`,
     name: f.name,
     brand: f.brand,
     kcal: f.kcal,
     protein: f.protein,
     carbs: f.carbs,
     fat: f.fat,
-    imageUrl: f.imageUrl,
     badge: f.source === "custom" ? "Eigenes" : f.source === "recipe" ? "Rezept" : undefined,
   });
 
@@ -60,15 +61,14 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
     .filter((f) => !localBarcodes.has(f.barcode))
     .map((f) => ({
       key: `o${f.barcode}`,
-      href: `/barcode/${f.barcode}${ctx}`,
+      href: `/barcode/${f.barcode}${resultCtx}`,
       name: f.name,
       brand: f.brand,
       kcal: f.kcal,
       protein: f.protein,
       carbs: f.carbs,
       fat: f.fat,
-      imageUrl: f.imageUrl,
-    }));
+      }));
 
   const [recent, favorites, recipes, savedMeals] = q
     ? [[], [], [], []]
@@ -187,12 +187,15 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
         </>
       )}
 
-      <div className="grid grid-cols-2 gap-2">
-        <Link href={`/foods/new${ctx}`} className="btn-secondary">
-          Eigenes Lebensmittel
+      <div className="grid grid-cols-3 gap-2">
+        <Link href={`/foods/new${ctx}`} className="btn-secondary flex-col gap-0.5 px-2 py-2.5 text-label">
+          <span aria-hidden>✏️</span> Eigenes
         </Link>
-        <Link href={`/recipes${ctx}`} className="btn-secondary">
-          Rezepte
+        <Link href={`/recipes${ctx}`} className="btn-secondary flex-col gap-0.5 px-2 py-2.5 text-label">
+          <span aria-hidden>🍲</span> Rezepte
+        </Link>
+        <Link href={`/meals${ctx}`} className="btn-secondary flex-col gap-0.5 px-2 py-2.5 text-label">
+          <span aria-hidden>🍱</span> Mahlzeiten
         </Link>
       </div>
     </div>

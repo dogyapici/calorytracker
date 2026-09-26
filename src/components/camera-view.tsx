@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@/components/icons";
 
-export type CameraFrame = "wide" | "square" | "tall";
+export type CameraFrame = "wide" | "square" | "none";
 
 // Größe des scharfen Rahmens in der Mitte; alles außen herum wird unscharf.
-const FRAMES: Record<CameraFrame, { width: string; height: string }> = {
+// "none": reine Vollbild-Kamera, das Foto zeigt, was man sieht.
+const FRAMES: Record<Exclude<CameraFrame, "none">, { width: string; height: string }> = {
   wide: { width: "min(84vw, 420px)", height: "min(52vw, 260px)" },
   square: { width: "min(86vw, 70vh, 480px)", height: "min(86vw, 70vh, 480px)" },
-  tall: { width: "min(72vw, 48vh, 400px)", height: "min(108vw, 72vh, 600px)" },
 };
 
 type Props = {
@@ -25,7 +25,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-/** Full-screen camera with a sharp frame in the middle and a blurred surrounding. */
+/** Full-screen camera, optionally with a sharp frame in the middle and a blurred surrounding. */
 export function CameraView({ frame, hint, onClose, onVideo, onCapture, children }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -70,11 +70,11 @@ export function CameraView({ frame, hint, onClose, onVideo, onCapture, children 
 
   const capture = () => {
     const video = videoRef.current;
-    const box = frameRef.current;
-    if (!video || !box || !onCapture || !video.videoWidth) return;
-    // Das Video füllt den Bildschirm (object-cover); den Rahmen auf Videopixel umrechnen.
+    if (!video || !onCapture || !video.videoWidth) return;
+    // Das Video füllt den Bildschirm (object-cover); den Rahmen (oder ohne Rahmen den
+    // sichtbaren Ausschnitt) auf Videopixel umrechnen.
     const view = video.getBoundingClientRect();
-    const rect = box.getBoundingClientRect();
+    const rect = frameRef.current?.getBoundingClientRect() ?? view;
     const scale = Math.max(view.width / video.videoWidth, view.height / video.videoHeight);
     const offsetX = (view.width - video.videoWidth * scale) / 2;
     const offsetY = (view.height - video.videoHeight * scale) / 2;
@@ -90,13 +90,14 @@ export function CameraView({ frame, hint, onClose, onVideo, onCapture, children 
     canvas.toBlob((blob) => blob && onCapture(blob), "image/jpeg", 0.9);
   };
 
-  const size = FRAMES[frame];
+  const size = frame === "none" ? null : FRAMES[frame];
   const blur = "bg-black/45 backdrop-blur-md";
 
   return createPortal(
     <div className="fixed inset-0 z-50 bg-black text-white" role="dialog" aria-modal="true" aria-label="Kamera">
       <video ref={videoRef} className="absolute inset-0 h-full w-full object-cover" playsInline muted />
 
+      {size && (
       <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `1fr ${size.width} 1fr`, gridTemplateRows: `1fr ${size.height} 1fr` }}>
         <div className={`col-span-3 ${blur}`} />
         <div className={blur} />
@@ -109,6 +110,7 @@ export function CameraView({ frame, hint, onClose, onVideo, onCapture, children 
         <div className={blur} />
         <div className={`col-span-3 ${blur}`} />
       </div>
+      )}
 
       <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <button type="button" onClick={onClose} className="flex h-11 w-11 items-center justify-center rounded-full bg-black/50" aria-label="Kamera schließen">

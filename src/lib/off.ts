@@ -146,12 +146,50 @@ async function searchLegacy(query: string, pageSize: number): Promise<OffFood[]>
   return uniqueFoods(data?.products);
 }
 
+const fold = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/ß/g, "ss")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+/**
+ * Open Food Facts also returns products that match only one word of the query or
+ * only in fields we don't show. We re-rank by how well name and brand match:
+ * all words present first, then name starting with the query, then shorter names.
+ * Products that contain none of the words are dropped if better ones exist.
+ */
+export function rankFoods<T extends { name: string; brand: string | null }>(query: string, foods: T[]): T[] {
+  const words = fold(query).split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 1);
+  if (!words.length) return foods;
+  const phrase = words.join(" ");
+  const scored = foods.map((food, index) => {
+    const name = fold(food.name);
+    const text = `${name} ${fold(food.brand ?? "")}`;
+    const hits = words.filter((w) => text.includes(w)).length;
+    let score = hits * 10 + (hits === words.length ? 100 : 0);
+    if (name.startsWith(phrase)) score += 30;
+    else if (name.includes(phrase)) score += 15;
+    score += words.filter((w) => new RegExp(`(^|[^\\p{L}])${w}`, "u").test(name)).length * 5;
+    score -= Math.min(name.length, 80) / 10;
+    return { food, hits, score, index };
+  });
+  const best = Math.max(...scored.map((s) => s.hits));
+  return scored
+    .filter((s) => s.hits > 0 || best === 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map((s) => s.food);
+}
+
 export async function searchProducts(query: string, pageSize = 24): Promise<OffFood[]> {
+  // Mehr holen als angezeigt, damit nach dem Umsortieren die passendsten oben stehen.
+  const fetchSize = pageSize * 2;
+  let found: OffFood[] = [];
   try {
-    const fast = await searchFast(query, pageSize);
-    if (fast.length) return fast;
+    found = await searchFast(query, fetchSize);
   } catch (e) {
     console.warn("OFF fast search failed, falling back", e instanceof Error ? e.message : e);
   }
-  return searchLegacy(query, pageSize);
+  if (!found.length) found = await searchLegacy(query, fetchSize);
+  return rankFoods(query, found).slice(0, pageSize);
 }

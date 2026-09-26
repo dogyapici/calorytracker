@@ -31,8 +31,8 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
     food.source === "recipe" ? getRecipe(user.id, food.id) : null,
   ]);
 
-  // Open Food Facts liefert Vorschaubilder in 100/200 px; für die Detailseite nehmen wir 400 px.
-  const image = food.imageUrl?.replace(/\.(100|200)\.jpg$/, ".400.jpg") ?? null;
+  const backParams = new URLSearchParams({ day, meal });
+  if (typeof sp.q === "string" && sp.q) backParams.set("q", sp.q.slice(0, 100));
   const subtitle = [food.brand, food.source === "custom" ? "Eigenes Lebensmittel" : food.source === "recipe" ? "Rezept" : null].filter(Boolean).join(" · ");
   const macros = [
     { key: "protein", label: "Eiweiß", grams: food.protein, kcal: food.protein * 4, color: "bg-macro-protein" },
@@ -57,7 +57,7 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between gap-3">
-        <Link href={`/add?day=${day}&meal=${meal}`} className="btn-secondary px-3" aria-label="Zurück">
+        <Link href={`/add?${backParams}`} className="btn-secondary px-3" aria-label="Zurück">
           <Icon name="back" />
         </Link>
         <form action={toggleFavorite}>
@@ -68,13 +68,7 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
         </form>
       </header>
 
-      <section className="card animate-enter overflow-hidden p-0">
-        {image && (
-          <div className="flex justify-center bg-white p-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={image} alt={`Produktbild ${food.name}`} className="h-52 w-full object-contain" />
-          </div>
-        )}
+      <section className="card animate-enter p-0">
         <div className="space-y-4 p-card">
           <div>
             {subtitle && <p className="text-label muted">{subtitle}</p>}

@@ -72,7 +72,7 @@ export function WeightForm({ today, lastKg }: { today: string; lastKg: number | 
 
       <div className="space-y-2">
         <input type="hidden" name="photo" value={photo} />
-        <PhotoPicker frame="tall" hint="Ganzen Körper in den Rahmen" takeLabel={photo ? "Neues Foto" : "Foto (optional)"} onPick={onFile} />
+        <PhotoPicker frame="none" hint="Fortschrittsfoto" takeLabel={photo ? "Neues Foto" : "Foto (optional)"} onPick={onFile} />
         {busy && <p className="text-sm muted">Foto wird vorbereitet…</p>}
         {photoError && <p className="text-sm text-danger">{photoError}</p>}
         {photo && (

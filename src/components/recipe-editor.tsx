@@ -1,13 +1,12 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
-import { importBarcode, saveRecipe, searchIngredients, type IngredientOption } from "@/app/recipe-actions";
-import { BarcodeScanner } from "@/components/barcode-scanner";
+import { useActionState, useState } from "react";
+import { saveRecipe } from "@/app/recipe-actions";
+import { IngredientPicker, parseAmount, type EditorIngredient } from "@/components/ingredient-picker";
 import { FormMessage, SubmitButton } from "@/components/form-bits";
 import { fmt, scaleNutrients, sumNutrients } from "@/lib/nutrition";
-import { Icon } from "@/components/icons";
 
-export type EditorIngredient = IngredientOption & { foodId: number; grams: string };
+export type { EditorIngredient };
 
 type Props = {
   recipe?: { id: number; name: string; servings: number; cookedGrams: number | null };
@@ -16,11 +15,6 @@ type Props = {
   meal: string;
 };
 
-function parseAmount(value: string) {
-  const n = Number(value.replace(",", "."));
-  return Number.isFinite(n) && n > 0 ? n : 0;
-}
-
 export function RecipeEditor({ recipe, initialIngredients, day, meal }: Props) {
   const [state, action] = useActionState(saveRecipe, undefined);
   const [name, setName] = useState(recipe?.name ?? "");
@@ -28,50 +22,10 @@ export function RecipeEditor({ recipe, initialIngredients, day, meal }: Props) {
   const [cooked, setCooked] = useState(recipe?.cookedGrams ? String(recipe.cookedGrams) : "");
   const [ingredients, setIngredients] = useState<EditorIngredient[]>(initialIngredients);
 
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<IngredientOption[] | null>(null);
-  const [searchNote, setSearchNote] = useState<string | null>(null);
-  const [searching, startSearch] = useTransition();
-
   const rawGrams = ingredients.reduce((s, i) => s + parseAmount(i.grams), 0);
   const totalGrams = parseAmount(cooked) || rawGrams;
   const total = sumNutrients(ingredients.map((i) => scaleNutrients(i, parseAmount(i.grams))));
   const portions = Math.max(1, Math.round(parseAmount(servings)) || 1);
-
-  const add = (option: IngredientOption) => {
-    if (option.foodId === null) return;
-    setIngredients((list) => [...list, { ...option, foodId: option.foodId!, grams: String(option.servingGrams ?? 100) }]);
-    setResults(null);
-    setQuery("");
-    setSearchNote(null);
-  };
-
-  const pick = (option: IngredientOption) => {
-    if (option.foodId !== null) return add(option);
-    // Open Food Facts hit that is not cached yet: import it first so it has an id.
-    startSearch(async () => {
-      const food = option.barcode ? await importBarcode(option.barcode) : null;
-      if (food) add(food);
-      else setSearchNote("Dieses Produkt konnte nicht geladen werden.");
-    });
-  };
-
-  const search = () => {
-    if (!query.trim()) return;
-    startSearch(async () => {
-      const { items, remoteError } = await searchIngredients(query);
-      setResults(items);
-      setSearchNote(remoteError ? "Open Food Facts ist gerade nicht erreichbar, es werden nur bekannte Lebensmittel gezeigt." : items.length ? null : "Keine Treffer.");
-    });
-  };
-
-  const onScan = (code: string) => {
-    startSearch(async () => {
-      const food = await importBarcode(code);
-      if (food) add(food);
-      else setSearchNote(`Kein Produkt mit Barcode ${code} gefunden.`);
-    });
-  };
 
   return (
     <form action={action} className="space-y-4">
@@ -112,79 +66,7 @@ export function RecipeEditor({ recipe, initialIngredients, day, meal }: Props) {
         </p>
       </div>
 
-      <section className="card space-y-3">
-        <h2 className="text-h3">Zutaten</h2>
-        {ingredients.length === 0 && <p className="text-sm muted">Noch keine Zutaten. Suche unten oder scanne einen Barcode.</p>}
-        <ul className="space-y-2">
-          {ingredients.map((ing, idx) => (
-            <li key={`${ing.foodId}-${idx}`} className="flex items-center gap-2">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{ing.name}</p>
-                <p className="truncate text-caption muted">
-                  {[ing.brand, `${fmt(scaleNutrients(ing, parseAmount(ing.grams)).kcal)} kcal`].filter(Boolean).join(" · ")}
-                </p>
-              </div>
-              <input
-                className="input w-20 px-2 py-1.5 text-right tabular-nums"
-                aria-label={`Menge ${ing.name} in Gramm`}
-                inputMode="decimal"
-                value={ing.grams}
-                onChange={(e) => setIngredients((list) => list.map((x, i) => (i === idx ? { ...x, grams: e.target.value } : x)))}
-                onFocus={(e) => e.target.select()}
-              />
-              <span className="text-sm muted">g</span>
-              <button
-                type="button"
-                className="btn px-2 py-1 text-text-tertiary hover:text-danger"
-                aria-label={`${ing.name} entfernen`}
-                onClick={() => setIngredients((list) => list.filter((_, i) => i !== idx))}
-              >
-                <Icon name="remove" size={20} />
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <div className="space-y-2 border-t border-border pt-3">
-          <div className="flex gap-2">
-            <input
-              className="input"
-              type="search"
-              placeholder="Zutat suchen oder Barcode eingeben"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  search();
-                }
-              }}
-              enterKeyHint="search"
-            />
-            <button type="button" className="btn-secondary" onClick={search} disabled={searching}>
-              {searching ? "…" : "Suchen"}
-            </button>
-          </div>
-          <BarcodeScanner onCode={onScan} />
-          {searchNote && <p className="text-sm muted">{searchNote}</p>}
-          {results && results.length > 0 && (
-            <ul className="divide-y divide-border rounded-button border border-border">
-              {results.map((r) => (
-                <li key={r.foodId ? `f${r.foodId}` : `o${r.barcode}`}>
-                  <button type="button" className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-surface-muted" onClick={() => pick(r)} disabled={searching}>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{r.name}</span>
-                      <span className="block truncate text-caption muted">{r.brand ?? " "}</span>
-                    </span>
-                    <span className="shrink-0 text-xs tabular-nums muted">{fmt(r.kcal)} kcal/100 g</span>
-                    <span className="shrink-0 font-semibold text-primary">+</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
+      <IngredientPicker title="Zutaten" emptyText="Noch keine Zutaten. Suche unten oder scanne einen Barcode." ingredients={ingredients} onChange={setIngredients} />
 
       {ingredients.length > 0 && (
         <section className="card grid grid-cols-3 gap-2 text-center">
