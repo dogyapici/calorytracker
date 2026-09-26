@@ -2,6 +2,7 @@ import type { Entry } from "@/db/schema";
 import { EXTRA_LIMITS, MICROS, sumMicros } from "@/lib/micros";
 import { fmt } from "@/lib/nutrition";
 import { ProgressBar } from "./progress";
+import { Icon } from "@/components/icons";
 
 function sumKnown(entries: Entry[], key: "sugar" | "saturatedFat" | "fiber" | "salt") {
   const known = entries.filter((e) => e[key] !== null);
@@ -26,7 +27,7 @@ export function NutrientDetails({ entries, kcalTarget }: { entries: Entry[]; kca
     <details className="card group">
       <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
         Weitere Nährwerte
-        <span className="text-sm muted transition group-open:rotate-180">▾</span>
+        <Icon name="expand" size={20} className="text-text-secondary transition group-open:rotate-180" />
       </summary>
       <div className="mt-3 space-y-3">
         {extras.map((x) => (
@@ -37,18 +38,18 @@ export function NutrientDetails({ entries, kcalTarget }: { entries: Entry[]; kca
                 {fmt(x.value, 1)} g {x.kind === "min" ? "von mind." : "von max."} {fmt(x.target)} g
               </span>
             </div>
-            <ProgressBar value={x.value} max={x.target} color={x.kind === "min" ? "bg-brand-500" : "bg-zinc-400"} overIsBad={x.kind === "max"} />
+            <ProgressBar value={x.value} max={x.target} color={x.kind === "min" ? "bg-primary" : "bg-text-tertiary"} overIsBad={x.kind === "max"} />
             {x.known < entries.length && (
-              <p className="mt-0.5 text-[11px] muted">
+              <p className="mt-0.5 text-caption muted">
                 bei {entries.length - x.known} von {entries.length} Einträgen unbekannt
               </p>
             )}
           </div>
         ))}
 
-        <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800">
+        <div className="border-t border-border pt-3">
           <h3 className="mb-1 text-sm font-semibold">Vitamine und Mineralstoffe</h3>
-          <p className="mb-2 text-[11px] muted">
+          <p className="mb-2 text-caption muted">
             Nur aus Produkten, die diese Werte angeben ({withMicros} von {entries.length} Einträgen). Prozent vom Tagesbedarf
             eines Erwachsenen (DGE, gerundet).
           </p>
@@ -64,7 +65,7 @@ export function NutrientDetails({ entries, kcalTarget }: { entries: Entry[]; kca
                       <span>{m.label}</span>
                       <span className="tabular-nums muted">{fmt((value / m.reference) * 100)} %</span>
                     </div>
-                    <ProgressBar value={value} max={m.reference} color="bg-violet-500" overIsBad={false} />
+                    <ProgressBar value={value} max={m.reference} color="bg-primary" overIsBad={false} />
                   </li>
                 );
               })}

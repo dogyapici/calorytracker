@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { addDays, dayOrToday, formatDay, today } from "@/lib/dates";
 import { fmt, MEALS, sumNutrients } from "@/lib/nutrition";
 import { getEntriesForDay, getProfile, getStreak } from "@/lib/queries";
+import { Icon } from "@/components/icons";
 
 export const metadata = { title: "Tagebuch" };
 
@@ -26,42 +27,44 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
     <div className="space-y-4">
       <header className="flex items-center justify-between">
         <Link href={`/?day=${addDays(day, -1)}`} className="btn-secondary px-3" aria-label="Vorheriger Tag">
-          ‹
+          <Icon name="back" />
         </Link>
         <div className="text-center">
-          <h1 className="text-lg font-bold">{isToday ? "Heute" : formatDay(day)}</h1>
+          <h1 className="text-h2">{isToday ? "Heute" : formatDay(day)}</h1>
           {isToday ? (
-            <p className="text-xs muted">{formatDay(day)}</p>
+            <p className="text-caption muted">{formatDay(day)}</p>
           ) : (
-            <Link href="/" className="text-xs font-semibold text-brand-600">
+            <Link href="/" className="text-xs font-semibold text-primary">
               Zu heute
             </Link>
           )}
         </div>
         <Link href={`/?day=${addDays(day, 1)}`} className="btn-secondary px-3" aria-label="Nächster Tag">
-          ›
+          <Icon name="forward" />
         </Link>
       </header>
 
       {isToday && streak.current > 0 && (
         <p className="flex items-center justify-center gap-2 text-sm">
-          <span className="rounded-full bg-orange-100 px-3 py-1 font-semibold text-orange-700 dark:bg-orange-500/20 dark:text-orange-300">
-            🔥 {streak.current} {streak.current === 1 ? "Tag" : "Tage"} in Folge
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-label font-semibold text-primary">
+            <Icon name="streak" size={16} /> {streak.current} {streak.current === 1 ? "Tag" : "Tage"} in Folge
           </span>
           {!streak.loggedToday && <span className="muted">Trag heute etwas ein, um sie zu halten.</span>}
         </p>
       )}
 
-      <section className="card flex items-center gap-5">
-        <CalorieRing eaten={total.kcal} target={profile.kcalTarget} />
-        <div className="min-w-0 flex-1 space-y-3">
-          <p className="text-sm muted">
-            <span className="font-semibold text-zinc-900 tabular-nums dark:text-zinc-100">{fmt(total.kcal)}</span> von{" "}
-            {fmt(profile.kcalTarget)} kcal
+      <section className="card space-y-5">
+        <div className="flex flex-col items-center gap-2">
+          <CalorieRing eaten={total.kcal} target={profile.kcalTarget} />
+          <p className="text-label muted">
+            <span className="text-text-primary">{fmt(total.kcal)}</span> von {fmt(profile.kcalTarget)}
+            <span className="ml-0.5 text-caption">kcal</span> gegessen
           </p>
-          <MacroRow label="Eiweiß" value={total.protein} target={profile.proteinTarget} color="bg-sky-500" />
-          <MacroRow label="Kohlenh." value={total.carbs} target={profile.carbsTarget} color="bg-amber-500" />
-          <MacroRow label="Fett" value={total.fat} target={profile.fatTarget} color="bg-rose-500" />
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <MacroRow label="Eiweiß" value={total.protein} target={profile.proteinTarget} color="bg-macro-protein" />
+          <MacroRow label="Kohlenh." value={total.carbs} target={profile.carbsTarget} color="bg-macro-carbs" />
+          <MacroRow label="Fett" value={total.fat} target={profile.fatTarget} color="bg-macro-fat" />
         </div>
       </section>
 
@@ -72,34 +75,42 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
         const mealKcal = items.reduce((s, e) => s + e.kcal, 0);
         const addHref = `/add?day=${day}&meal=${meal.key}`;
         return (
-          <section key={meal.key} className="card p-0">
-            <div className="flex items-center justify-between px-4 pt-3">
-              <h2 className="font-semibold">{meal.label}</h2>
-              <span className="text-sm tabular-nums muted">{fmt(mealKcal)} kcal</span>
+          <section key={meal.key} className="card animate-enter p-0">
+            <div className="flex items-baseline justify-between px-card pt-4">
+              <h2 className="text-h3">{meal.label}</h2>
+              <span className="text-body font-semibold">
+                {fmt(mealKcal)}
+                <span className="ml-0.5 text-caption muted">kcal</span>
+              </span>
             </div>
-            {items.length > 0 && (
-              <ul className="mt-2 divide-y divide-zinc-100 dark:divide-zinc-800">
+            {items.length > 0 ? (
+              <ul className="mt-1 divide-y divide-border px-card">
                 {items.map((e) => (
                   <li key={e.id}>
-                    <Link href={`/entry/${e.id}`} className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                    <Link href={`/entry/${e.id}`} className="-mx-2 flex items-center justify-between gap-3 rounded-chip px-2 py-3 hover:bg-surface-muted">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{e.name}</p>
-                        <p className="text-xs muted">
+                        <p className="truncate">{e.name}</p>
+                        <p className="text-caption muted">
                           {fmt(e.grams)} g · E {fmt(e.protein, 1)} · K {fmt(e.carbs, 1)} · F {fmt(e.fat, 1)}
                         </p>
                       </div>
-                      <span className="shrink-0 text-sm tabular-nums">{fmt(e.kcal)}</span>
+                      <span className="shrink-0">
+                        {fmt(e.kcal)}
+                        <span className="ml-0.5 text-caption muted">kcal</span>
+                      </span>
                     </Link>
                   </li>
                 ))}
               </ul>
+            ) : (
+              <p className="px-card pt-1 text-label muted">Noch nichts eingetragen.</p>
             )}
-            <div className="flex items-center gap-2 px-2 py-2">
-              <Link href={addHref} className="btn flex-1 justify-start text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-700/20">
-                + Hinzufügen
+            <div className="flex items-center gap-2 px-3 pb-3 pt-2">
+              <Link href={addHref} className="btn-ghost flex-1 justify-start">
+                <Icon name="add" size={20} /> Hinzufügen
               </Link>
               {items.length > 0 && (
-                <Link href={`/meals/new?day=${day}&meal=${meal.key}`} className="btn text-xs muted hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                <Link href={`/meals/new?day=${day}&meal=${meal.key}`} className="btn text-caption muted hover:bg-surface-muted">
                   Als Mahlzeit speichern
                 </Link>
               )}
@@ -108,7 +119,7 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
                   <input type="hidden" name="from" value={yesterday} />
                   <input type="hidden" name="to" value={day} />
                   <input type="hidden" name="meal" value={meal.key} />
-                  <button className="btn text-xs muted hover:bg-zinc-100 dark:hover:bg-zinc-800">Wie gestern</button>
+                  <button className="btn text-caption muted hover:bg-surface-muted">Wie gestern</button>
                 </form>
               )}
             </div>

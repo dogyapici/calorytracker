@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
 import { fmt, MEALS } from "@/lib/nutrition";
 import { getSavedMeals } from "@/lib/queries";
+import { Icon } from "@/components/icons";
 
 export const metadata = { title: "Meine Mahlzeiten" };
 
@@ -18,9 +19,9 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
     <div className="space-y-4">
       <header className="flex items-center gap-3">
         <Link href={`/add?day=${day}&meal=${meal}`} className="btn-secondary px-3" aria-label="Zurück">
-          ‹
+          <Icon name="back" />
         </Link>
-        <h1 className="text-lg font-bold">Meine Mahlzeiten</h1>
+        <h1 className="text-h1">Meine Mahlzeiten</h1>
       </header>
       {meals.length === 0 ? (
         <p className="card text-sm muted">
@@ -33,7 +34,7 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-semibold">{m.name}</p>
-                  <p className="text-xs muted">{fmt(m.kcal)} kcal · {m.items.map((i) => i.food.name).join(", ")}</p>
+                  <p className="text-caption muted">{fmt(m.kcal)} kcal · {m.items.map((i) => i.food.name).join(", ")}</p>
                 </div>
                 <form action={deleteSavedMeal}>
                   <input type="hidden" name="id" value={m.id} />

@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
 import { MEALS } from "@/lib/nutrition";
 import { getRecipe } from "@/lib/queries";
+import { Icon } from "@/components/icons";
 
 export const metadata = { title: "Rezept bearbeiten" };
 
@@ -23,9 +24,9 @@ export default async function EditRecipePage({ params, searchParams }: PageProps
     <div className="space-y-4">
       <header className="flex items-center gap-3">
         <Link href={`/food/${recipe.id}?day=${day}&meal=${meal}`} className="btn-secondary px-3" aria-label="Zurück">
-          ‹
+          <Icon name="back" />
         </Link>
-        <h1 className="text-lg font-bold">Rezept bearbeiten</h1>
+        <h1 className="text-h1">Rezept bearbeiten</h1>
       </header>
       <RecipeEditor
         recipe={{ id: recipe.id, name: recipe.name, servings: recipe.recipeServings ?? 1, cookedGrams: recipe.recipeCookedGrams }}

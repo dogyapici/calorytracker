@@ -6,6 +6,7 @@ import { formatDay, today } from "@/lib/dates";
 import { fmt } from "@/lib/nutrition";
 import { getPhotoVersions, getWeights } from "@/lib/queries";
 import { WeightForm } from "./weight-form";
+import { Icon } from "@/components/icons";
 
 export const metadata = { title: "Gewicht" };
 
@@ -43,14 +44,14 @@ export default async function WeightPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-bold">Gewicht</h1>
+      <h1 className="text-h1">Gewicht</h1>
       <WeightForm today={today()} lastKg={latest?.kg ?? null} />
 
       {chronological.length >= 2 && (
         <section className="card space-y-2">
           <div className="flex items-baseline justify-between">
-            <h2 className="font-semibold">Verlauf</h2>
-            <span className={`text-sm font-semibold tabular-nums ${change <= 0 ? "text-brand-600" : "text-amber-600"}`}>
+            <h2 className="text-h3">Verlauf</h2>
+            <span className={`text-sm font-semibold tabular-nums ${change <= 0 ? "text-primary" : "text-warning"}`}>
               {change > 0 ? "+" : ""}
               {fmt(change, 1)} kg
             </span>
@@ -61,15 +62,15 @@ export default async function WeightPage() {
 
       {measureSummary.length > 0 && (
         <section className="card space-y-2">
-          <h2 className="font-semibold">Körpermaße</h2>
+          <h2 className="text-h3">Körpermaße</h2>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {measureSummary.map((m) => (
               <li key={m.key}>
-                <p className="text-xs muted">{m.label}</p>
+                <p className="text-caption muted">{m.label}</p>
                 <p className="font-semibold tabular-nums">
                   {fmt(m.value, 1)} {m.unit}
                   {m.diff !== null && m.diff !== 0 && (
-                    <span className={`ml-1 text-xs ${m.diff < 0 ? "text-brand-600" : "text-amber-600"}`}>
+                    <span className={`ml-1 text-xs ${m.diff < 0 ? "text-primary" : "text-warning"}`}>
                       {m.diff > 0 ? "+" : ""}
                       {fmt(m.diff, 1)}
                     </span>
@@ -78,26 +79,26 @@ export default async function WeightPage() {
               </li>
             ))}
           </ul>
-          <p className="text-xs muted">Veränderung seit der ersten Messung.</p>
+          <p className="text-caption muted">Veränderung seit der ersten Messung.</p>
         </section>
       )}
 
       {gallery.length > 0 && (
         <section className="card space-y-2">
-          <h2 className="font-semibold">Fortschrittsfotos</h2>
+          <h2 className="text-h3">Fortschrittsfotos</h2>
           <ul className="grid grid-cols-3 gap-2">
             {gallery.map((w) => (
               <li key={w.day}>
                 <a href={photoUrl(w.day, photos.get(w.day)!)} target="_blank" rel="noreferrer" className="block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photoUrl(w.day, photos.get(w.day)!)} alt={`Foto vom ${formatDay(w.day)}`} className="aspect-[3/4] w-full rounded-lg bg-zinc-100 object-cover dark:bg-zinc-800" loading="lazy" />
+                  <img src={photoUrl(w.day, photos.get(w.day)!)} alt={`Foto vom ${formatDay(w.day)}`} className="aspect-[3/4] w-full rounded-chip bg-surface-muted object-cover" loading="lazy" />
                   <span className="mt-1 block text-center text-[11px] tabular-nums muted">
                     {formatDay(w.day, { day: "numeric", month: "numeric", year: "2-digit" })} · {fmt(w.kg, 1)} kg
                   </span>
                 </a>
                 <form action={deleteWeightPhoto} className="text-center">
                   <input type="hidden" name="day" value={w.day} />
-                  <button className="text-[11px] text-zinc-400 hover:text-red-600" aria-label={`Foto vom ${formatDay(w.day)} löschen`}>
+                  <button className="text-[11px] text-text-tertiary hover:text-danger" aria-label={`Foto vom ${formatDay(w.day)} löschen`}>
                     Foto löschen
                   </button>
                 </form>
@@ -108,7 +109,7 @@ export default async function WeightPage() {
       )}
 
       {list.length > 0 && (
-        <ul className="card divide-y divide-zinc-100 p-0 dark:divide-zinc-800">
+        <ul className="card divide-y divide-border p-0">
           {list.slice(0, 60).map((w) => {
             const measures = MEASURES.filter((m) => w[m.key] !== null)
               .map((m) => `${m.label} ${fmt(w[m.key]!, 1)} ${m.unit}`)
@@ -119,18 +120,18 @@ export default async function WeightPage() {
                 {version ? (
                   <a href={photoUrl(w.day, version)} target="_blank" rel="noreferrer" className="shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photoUrl(w.day, version)} alt="" className="h-10 w-10 rounded-lg object-cover" loading="lazy" />
+                    <img src={photoUrl(w.day, version)} alt="" className="h-10 w-10 rounded-chip object-cover" loading="lazy" />
                   </a>
                 ) : null}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm">{formatDay(w.day, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</p>
-                  {measures && <p className="truncate text-xs muted">{measures}</p>}
+                  {measures && <p className="truncate text-caption muted">{measures}</p>}
                 </div>
                 <span className="font-semibold tabular-nums">{fmt(w.kg, 1)} kg</span>
                 <form action={deleteWeight}>
                   <input type="hidden" name="day" value={w.day} />
-                  <button className="btn px-2 py-1 text-zinc-400 hover:text-red-600" aria-label="Eintrag löschen">
-                    ×
+                  <button className="btn px-2 py-1 text-text-tertiary hover:text-danger" aria-label="Eintrag löschen">
+                    <Icon name="remove" size={20} />
                   </button>
                 </form>
               </li>

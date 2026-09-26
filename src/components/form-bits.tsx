@@ -20,7 +20,7 @@ export function SubmitButton({
 }
 
 export function FormMessage({ state }: { state?: { error?: string; ok?: string } }) {
-  if (state?.error) return <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">{state.error}</p>;
-  if (state?.ok) return <p className="rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-700 dark:bg-brand-700/20 dark:text-brand-100">{state.ok}</p>;
+  if (state?.error) return <p className="rounded-button bg-danger/10 px-3 py-2 text-sm text-danger">{state.error}</p>;
+  if (state?.ok) return <p className="rounded-button bg-primary-soft px-3 py-2 text-sm text-primary">{state.ok}</p>;
   return null;
 }

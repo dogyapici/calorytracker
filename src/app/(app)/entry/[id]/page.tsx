@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { entries } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { formatDay } from "@/lib/dates";
+import { Icon } from "@/components/icons";
 
 export const metadata = { title: "Eintrag bearbeiten" };
 
@@ -27,10 +28,10 @@ export default async function EntryPage({ params }: PageProps<"/entry/[id]">) {
     <div className="space-y-4">
       <header className="flex items-start gap-3">
         <Link href={`/?day=${entry.day}`} className="btn-secondary px-3" aria-label="Zurück">
-          ‹
+          <Icon name="back" />
         </Link>
         <div className="min-w-0">
-          <h1 className="text-lg font-bold leading-tight">{entry.name}</h1>
+          <h1 className="text-h2">{entry.name}</h1>
           <p className="text-sm muted">{formatDay(entry.day)}</p>
         </div>
       </header>

@@ -31,8 +31,7 @@ export function CalorieBars({ days, target }: { days: { label: string; kcal: num
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Kalorien pro Tag">
       {ticks.map((t) => (
         <g key={t}>
-          <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} className="stroke-zinc-200 dark:stroke-zinc-800" />
-          <text x={PAD.left - 4} y={y(t) + 3} textAnchor="end" className="fill-zinc-500 text-[9px]">
+          <text x={PAD.left - 4} y={y(t) + 3} textAnchor="end" className="fill-text-secondary text-[9px]">
             {fmt(t)}
           </text>
         </g>
@@ -42,18 +41,19 @@ export function CalorieBars({ days, target }: { days: { label: string; kcal: num
         const over = d.kcal > target;
         return (
           <g key={i}>
-            <rect x={x} y={y(d.kcal)} width={bw} height={Math.max(0, PAD.top + ih - y(d.kcal))} rx={Math.min(3, bw / 3)} className={over ? "fill-red-400" : "fill-brand-500"}>
+            <rect x={x} y={y(d.kcal)} width={bw} height={Math.max(0, PAD.top + ih - y(d.kcal))} rx={Math.min(3, bw / 3)} className={over ? "fill-warning" : "fill-accent-calories"}>
               <title>{`${d.label}: ${fmt(d.kcal)} kcal`}</title>
             </rect>
             {i % labelEvery === 0 && (
-              <text x={x + bw / 2} y={H - 6} textAnchor="middle" className="fill-zinc-500 text-[9px]">
+              <text x={x + bw / 2} y={H - 6} textAnchor="middle" className="fill-text-secondary text-[9px]">
                 {d.label}
               </text>
             )}
           </g>
         );
       })}
-      <line x1={PAD.left} x2={W - PAD.right} y1={y(target)} y2={y(target)} strokeDasharray="4 3" className="stroke-zinc-700 dark:stroke-zinc-300" />
+      <line x1={PAD.left} x2={W - PAD.right} y1={PAD.top + ih} y2={PAD.top + ih} className="stroke-border" />
+      <line x1={PAD.left} x2={W - PAD.right} y1={y(target)} y2={y(target)} strokeDasharray="4 3" strokeWidth={1.5} className="stroke-text-tertiary" />
     </svg>
   );
 }
@@ -77,20 +77,20 @@ export function WeightLine({ points }: { points: { label: string; kg: number }[]
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Gewichtsverlauf">
       {ticks.map((t) => (
         <g key={t}>
-          <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} className="stroke-zinc-200 dark:stroke-zinc-800" />
-          <text x={PAD.left - 4} y={y(t) + 3} textAnchor="end" className="fill-zinc-500 text-[9px]">
+          <text x={PAD.left - 4} y={y(t) + 3} textAnchor="end" className="fill-text-secondary text-[9px]">
             {fmt(t, 1)}
           </text>
         </g>
       ))}
-      <path d={path} fill="none" strokeWidth={2} strokeLinejoin="round" className="stroke-brand-600" />
+      <line x1={PAD.left} x2={W - PAD.right} y1={PAD.top + ih} y2={PAD.top + ih} className="stroke-border" />
+      <path d={path} fill="none" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" className="stroke-primary" />
       {points.map((p, i) => (
         <g key={i}>
-          <circle cx={x(i)} cy={y(p.kg)} r={points.length > 40 ? 1.5 : 3} className="fill-brand-600">
+          <circle cx={x(i)} cy={y(p.kg)} r={points.length > 40 ? 1.5 : 3} className="fill-primary">
             <title>{`${p.label}: ${fmt(p.kg, 1)} kg`}</title>
           </circle>
           {i % labelEvery === 0 && (
-            <text x={x(i)} y={H - 6} textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-zinc-500 text-[9px]">
+            <text x={x(i)} y={H - 6} textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-text-secondary text-[9px]">
               {p.label}
             </text>
           )}

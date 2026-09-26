@@ -8,9 +8,8 @@
  * Ein neues Theme = ein neuer Block für Light und einer für Dark.
  */
 
-/* ---------- monochrome-luxe (Standard) ---------- */
+/* ---------- monochrome-luxe (Alternative) ---------- */
 
-:root,
 [data-theme="monochrome-luxe"] {
   --ds-bg: #fafaf9;
   --ds-surface: #ffffff;
@@ -68,8 +67,9 @@
   --ds-shadow-elevated: none;
 }
 
-/* ---------- warm-minimal ---------- */
+/* ---------- warm-minimal (Standard) ---------- */
 
+:where(:root),
 [data-theme="warm-minimal"] {
   --ds-bg: #faf8f5;
   --ds-surface: #ffffff;
@@ -77,7 +77,7 @@
   --ds-border: #e7e2da;
   --ds-text-primary: #1f1d1b;
   --ds-text-secondary: #6b665f;
-  --ds-text-tertiary: #a39d94;
+  --ds-text-tertiary: #91897f; /* AA-Anpassung, DESIGN.md: #A39D94 */
   --ds-primary: #2f6b4f;
   --ds-primary-hover: #255840;
   --ds-primary-soft: #e3eee8;
@@ -88,9 +88,9 @@
   --ds-macro-protein: #5b8def;
   --ds-macro-carbs: #f2b544;
   --ds-macro-fat: #e86a92;
-  --ds-success: #3fa372;
-  --ds-warning: #e0913a;
-  --ds-danger: #d9534f;
+  --ds-success: #32805a; /* AA-Anpassung, DESIGN.md: #3FA372 */
+  --ds-warning: #a5631a; /* AA-Anpassung, DESIGN.md: #E0913A */
+  --ds-danger: #d33833; /* AA-Anpassung, DESIGN.md: #D9534F */
 
   /* Theme-Regeln: keine invertierte Hero-Karte, Ring mit Verlauf, warme Schatten */
   --ds-hero-surface: var(--ds-surface);

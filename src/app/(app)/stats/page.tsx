@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { addDays, formatDay, today } from "@/lib/dates";
 import { fmt } from "@/lib/nutrition";
 import { getDailyTotals, getProfile, getStreak, getWeights } from "@/lib/queries";
+import { Icon } from "@/components/icons";
 
 export const metadata = { title: "Statistik" };
 
@@ -42,10 +43,10 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="text-lg font-bold">Statistik</h1>
-        <div className="flex rounded-xl border border-zinc-300 p-0.5 dark:border-zinc-700">
+        <h1 className="text-h1">Statistik</h1>
+        <div className="flex rounded-button border border-border p-0.5">
           {RANGES.map((r) => (
-            <Link key={r} href={`/stats?range=${r}`} className={`rounded-lg px-3 py-1 text-sm font-medium ${r === range ? "bg-brand-600 text-white" : ""}`}>
+            <Link key={r} href={`/stats?range=${r}`} className={`rounded-chip px-3 py-1 text-sm font-medium ${r === range ? "bg-primary text-on-primary" : ""}`}>
               {r} T
             </Link>
           ))}
@@ -54,54 +55,54 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
 
       <section className="grid grid-cols-3 gap-3">
         <div className="card p-3">
-          <p className="text-xs muted">Ø kcal</p>
-          <p className="text-xl font-bold tabular-nums">{fmt(avgKcal)}</p>
-          <p className="text-xs muted">Ziel {fmt(profile.kcalTarget)}</p>
+          <p className="text-caption muted">Ø kcal</p>
+          <p className="text-h2">{fmt(avgKcal)}</p>
+          <p className="text-caption muted">Ziel {fmt(profile.kcalTarget)}</p>
         </div>
         <div className="card p-3">
-          <p className="text-xs muted">Im Ziel ±10 %</p>
-          <p className="text-xl font-bold tabular-nums">
+          <p className="text-caption muted">Im Ziel ±10 %</p>
+          <p className="text-h2">
             {onTarget}/{logged.length}
           </p>
-          <p className="text-xs muted">erfasste Tage</p>
+          <p className="text-caption muted">erfasste Tage</p>
         </div>
         <div className="card p-3">
-          <p className="text-xs muted">Gewicht</p>
-          <p className="text-xl font-bold tabular-nums">{weightChange === null ? "–" : `${weightChange > 0 ? "+" : ""}${fmt(weightChange, 1)}`}</p>
-          <p className="text-xs muted">kg im Zeitraum</p>
+          <p className="text-caption muted">Gewicht</p>
+          <p className="text-h2">{weightChange === null ? "–" : `${weightChange > 0 ? "+" : ""}${fmt(weightChange, 1)}`}</p>
+          <p className="text-caption muted">kg im Zeitraum</p>
         </div>
       </section>
 
       <section className="card flex items-center justify-around text-center">
         <div>
-          <p className="text-2xl font-bold tabular-nums">🔥 {streak.current}</p>
-          <p className="text-xs muted">Tage in Folge</p>
+          <p className="flex items-center gap-1 text-h1"><Icon name="streak" className="text-accent-calories" /> {streak.current}</p>
+          <p className="text-caption muted">Tage in Folge</p>
         </div>
         <div>
           <p className="text-2xl font-bold tabular-nums">{streak.longest}</p>
-          <p className="text-xs muted">Längste Serie</p>
+          <p className="text-caption muted">Längste Serie</p>
         </div>
       </section>
 
       <section className="card space-y-2">
-        <h2 className="font-semibold">Kalorien pro Tag</h2>
+        <h2 className="text-h3">Kalorien pro Tag</h2>
         <CalorieBars days={series} target={profile.kcalTarget} />
-        <p className="text-xs muted">Gestrichelt: dein Tagesziel. Rot: über dem Ziel.</p>
+        <p className="text-caption muted">Gestrichelt: dein Tagesziel. Tage über dem Ziel sind ocker markiert.</p>
       </section>
 
       <section className="card space-y-3">
-        <h2 className="font-semibold">Ø Makronährstoffe pro erfasstem Tag</h2>
+        <h2 className="text-h3">Ø Makronährstoffe pro erfasstem Tag</h2>
         <div className="flex h-3 overflow-hidden rounded-full">
-          <div className="bg-sky-500" style={{ width: `${((avg("protein") * 4) / macroKcal) * 100}%` }} />
-          <div className="bg-amber-500" style={{ width: `${((avg("carbs") * 4) / macroKcal) * 100}%` }} />
-          <div className="bg-rose-500" style={{ width: `${((avg("fat") * 9) / macroKcal) * 100}%` }} />
+          <div className="bg-macro-protein" style={{ width: `${((avg("protein") * 4) / macroKcal) * 100}%` }} />
+          <div className="bg-macro-carbs" style={{ width: `${((avg("carbs") * 4) / macroKcal) * 100}%` }} />
+          <div className="bg-macro-fat" style={{ width: `${((avg("fat") * 9) / macroKcal) * 100}%` }} />
         </div>
         <div className="grid grid-cols-3 text-sm">
           {(
             [
-              ["Eiweiß", "protein", "bg-sky-500", profile.proteinTarget],
-              ["Kohlenh.", "carbs", "bg-amber-500", profile.carbsTarget],
-              ["Fett", "fat", "bg-rose-500", profile.fatTarget],
+              ["Eiweiß", "protein", "bg-macro-protein", profile.proteinTarget],
+              ["Kohlenh.", "carbs", "bg-macro-carbs", profile.carbsTarget],
+              ["Fett", "fat", "bg-macro-fat", profile.fatTarget],
             ] as const
           ).map(([label, key, color, target]) => (
             <div key={key}>
@@ -110,7 +111,7 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
                 {label}
               </p>
               <p className="font-semibold tabular-nums">{fmt(avg(key))} g</p>
-              <p className="text-xs muted">Ziel {target} g</p>
+              <p className="text-caption muted">Ziel {target} g</p>
             </div>
           ))}
         </div>

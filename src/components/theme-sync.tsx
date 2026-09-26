@@ -1,20 +1,20 @@
 "use client";
 
 import { useLayoutEffect } from "react";
-import { applyTheme, DARK_QUERY } from "@/lib/theme";
+import { applyMode, DARK_QUERY } from "@/lib/theme";
 
 // Hält die Theme-Attribute auf <html> aktuell: nach dem Remount im Dev-Modus
 // (React setzt dann die Attribute von <html> zurück) und wenn sich bei
 // „System“ die Systemeinstellung ändert.
 export function ThemeSync() {
   useLayoutEffect(() => {
-    applyTheme();
+    applyMode();
     const query = window.matchMedia(DARK_QUERY);
-    query.addEventListener("change", applyTheme);
-    window.addEventListener("storage", applyTheme);
+    query.addEventListener("change", applyMode);
+    window.addEventListener("storage", applyMode);
     return () => {
-      query.removeEventListener("change", applyTheme);
-      window.removeEventListener("storage", applyTheme);
+      query.removeEventListener("change", applyMode);
+      window.removeEventListener("storage", applyMode);
     };
   }, []);
   return null;

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { Icon } from "@/components/icons";
 
 type Detector = { detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]> };
 
@@ -89,9 +90,7 @@ export function BarcodeScanner({ targetBase = "", onCode }: { targetBase?: strin
   if (!open) {
     return (
       <button type="button" className="btn-secondary w-full" onClick={() => { setError(null); setOpen(true); }}>
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-          <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8" />
-        </svg>
+        <Icon name="barcode" size={20} />
         Barcode scannen
       </button>
     );
@@ -99,11 +98,11 @@ export function BarcodeScanner({ targetBase = "", onCode }: { targetBase?: strin
 
   return (
     <div className="card space-y-3">
-      <div className="relative overflow-hidden rounded-xl bg-black">
+      <div className="relative overflow-hidden rounded-button bg-inverse-surface">
         <video ref={videoRef} className="aspect-[4/3] w-full object-cover" playsInline muted />
-        <div className="pointer-events-none absolute inset-x-8 top-1/2 h-0.5 -translate-y-1/2 bg-red-500/80" />
+        <div className="pointer-events-none absolute inset-x-8 top-1/2 h-0.5 -translate-y-1/2 bg-danger/80" />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
       {/* Not a <form>: the scanner may sit inside another form (recipe editor). */}
       <div className="flex gap-2">
         <input

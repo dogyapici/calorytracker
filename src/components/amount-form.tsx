@@ -69,7 +69,7 @@ export function AmountForm({ action, per100, hidden, initialGrams, initialMeal, 
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-4 gap-2 rounded-xl bg-zinc-50 p-3 text-center dark:bg-zinc-800/50">
+      <div className="grid grid-cols-4 gap-2 rounded-button bg-surface-muted p-3 text-center">
         {[
           ["kcal", n.kcal, 0],
           ["Eiweiß", n.protein, 1],
@@ -77,8 +77,8 @@ export function AmountForm({ action, per100, hidden, initialGrams, initialMeal, 
           ["Fett", n.fat, 1],
         ].map(([label, value, digits]) => (
           <div key={label as string}>
-            <p className="text-lg font-bold tabular-nums">{fmt(value as number, digits as number)}</p>
-            <p className="text-xs muted">{label}</p>
+            <p className="text-h2">{fmt(value as number, digits as number)}</p>
+            <p className="text-caption muted">{label}</p>
           </div>
         ))}
       </div>

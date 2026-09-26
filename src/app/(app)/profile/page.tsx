@@ -13,9 +13,9 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-bold">Profil & Ziele</h1>
+      <h1 className="text-h1">Profil & Ziele</h1>
       {welcome && (
-        <p className="card border-brand-500 text-sm">
+        <p className="card border-primary text-sm">
           Willkommen, {user.name}! Trage deine Daten ein und lass dir dein Kalorienziel berechnen.
         </p>
       )}

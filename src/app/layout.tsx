@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { ThemeSync } from "@/components/theme-sync";
-import { DEFAULT_MODE, DEFAULT_THEME, themeScript } from "@/lib/theme";
+import { DEFAULT_MODE, THEME, themeScript } from "@/lib/theme";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+    { media: "(prefers-color-scheme: light)", color: "#faf8f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#141312" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="de"
       className={`${inter.variable} h-full antialiased`}
-      data-theme={DEFAULT_THEME}
+      data-theme={THEME}
       data-mode={DEFAULT_MODE}
       suppressHydrationWarning
     >

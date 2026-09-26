@@ -9,10 +9,10 @@ Komponenten verwenden ausschließlich Tokens, nie hardcodierte Werte.
 ## 1. Themes
 
 Es gibt zwei Themes, jeweils mit Light- und Dark-Mode. Standard ist
-`monochrome-luxe`. Beide nutzen **dieselben Token-Namen**, damit Komponenten
+`warm-minimal` (Entscheidung vom 26.09.2026). Beide nutzen **dieselben Token-Namen**, damit Komponenten
 themeunabhängig bleiben.
 
-### 1.1 Theme `monochrome-luxe` (Standard)
+### 1.1 Theme `monochrome-luxe` (Alternative)
 
 Schwarz-Weiß-Basis mit edlen dunkelgrünen Akzenten. Reduziert, hochwertig,
 viel Weißraum. Grün sparsam (ca. 10 % der Fläche): nur Kalorien-Fortschritt,
@@ -49,7 +49,7 @@ Stilregeln:
   Auf der Hero-Karte im Light Mode wird der Ring in #7FB89A dargestellt
   (sonst zu wenig Kontrast auf Schwarz); im Dark Mode in #1F4D3A.
 
-### 1.2 Theme `warm-minimal` (Alternative)
+### 1.2 Theme `warm-minimal` (Standard)
 
 Warmer, cremiger Hintergrund, Waldgrün als Marke, appetitliches Koralle für
 Kalorien. Ruhig und freundlich.
@@ -82,6 +82,15 @@ Stilregeln:
 - Dezente, warme Schatten im Light Mode erlaubt (siehe 4.), im Dark Mode
   Borders statt Schatten.
 - Keine invertierte Hero-Karte; stattdessen surface-Karte.
+
+AA-Anpassungen im Light Mode (siehe 1.3), in der Tabelle oben noch mit den
+Originalwerten:
+- text-tertiary #A39D94 → #91897F (3:1 für Icons und inaktive Zustände;
+  Platzhaltertext nutzt text-secondary)
+- success #3FA372 → #32805A, warning #E0913A → #A5631A,
+  danger #D9534F → #D33833 (4.5:1 als Text)
+- accent-calories und Makrofarben bleiben: Ringe und Balken stehen immer
+  neben der Zahl und tragen die Information nicht allein.
 
 ### 1.3 Für alle Themes
 - Alle Text-/Hintergrund-Kombinationen erfüllen WCAG AA (4.5:1 für Text,
@@ -195,9 +204,8 @@ Keine Formulierungen, die Essen oder den Nutzer bewerten.
 
 ---
 
-## 8. Theme-Switcher (temporär)
+## 8. Theme-Switcher
 
-Ein Dev-Menü oder Eintrag in den Einstellungen zum Umschalten zwischen
-`monochrome-luxe` / `warm-minimal` und Light / Dark / System. Auswahl wird
-lokal gespeichert. Neue Themes lassen sich hinzufügen, indem nur ein neues
+Im Profil unter „Darstellung“: Hell / Dunkel / System (Standard: System).
+Auswahl wird lokal gespeichert. Das Theme selbst ist fest `warm-minimal`. Neue Themes lassen sich hinzufügen, indem nur ein neues
 Token-Set angelegt wird – ohne Änderungen an Komponenten.
