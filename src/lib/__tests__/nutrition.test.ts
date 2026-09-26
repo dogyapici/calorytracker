@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bmr, scaleNutrients, suggestTargets, sumNutrients } from "../nutrition";
+import { bmr, computeRecipe, scaleFood, scaleNutrients, suggestTargets, sumNutrients } from "../nutrition";
 import { addDays, isIsoDay, today } from "../dates";
 import { hashPassword, verifyPassword } from "../password";
 
@@ -48,5 +48,52 @@ describe("password", () => {
     const hash = await hashPassword("geheim123");
     expect(await verifyPassword("geheim123", hash)).toBe(true);
     expect(await verifyPassword("falsch", hash)).toBe(false);
+  });
+});
+
+describe("computeRecipe", () => {
+  const oats = { kcal: 372, protein: 13.5, carbs: 58.7, fat: 7, sugar: 0.7, saturatedFat: null, fiber: 10, salt: 0.02 };
+  const milk = { kcal: 64, protein: 3.4, carbs: 4.8, fat: 3.5, sugar: 4.8, saturatedFat: 2.3, fiber: null, salt: 0.1 };
+
+  it("averages ingredients per 100 g and splits into portions", () => {
+    const r = computeRecipe([{ per100: oats, grams: 100 }, { per100: milk, grams: 300 }], 2);
+    expect(r.totalGrams).toBe(400);
+    expect(r.total.kcal).toBeCloseTo(372 + 192);
+    expect(r.per100.kcal).toBeCloseTo(141);
+    expect(r.servingGrams).toBe(200);
+    // Fiber only known for oats: 10 g in 400 g.
+    expect(r.per100.fiber).toBeCloseTo(2.5);
+    expect(r.per100.saturatedFat).toBeCloseTo(1.725);
+  });
+
+  it("uses the cooked weight when given", () => {
+    const r = computeRecipe([{ per100: oats, grams: 100 }], 1, 250);
+    expect(r.per100.kcal).toBeCloseTo(148.8);
+    expect(r.total.kcal).toBeCloseTo(372);
+    expect(r.servingGrams).toBe(250);
+  });
+
+  it("handles an empty recipe", () => {
+    const r = computeRecipe([], 4);
+    expect(r.per100.kcal).toBe(0);
+    expect(r.per100.fiber).toBeNull();
+  });
+});
+
+describe("scaleFood", () => {
+  it("scales optional nutrients and micros, keeping unknowns null", () => {
+    const food = { kcal: 64, protein: 3.4, carbs: 4.8, fat: 3.5, sugar: 4.8, saturatedFat: null, fiber: null, salt: 0.1, micros: { calcium: 120 } };
+    const e = scaleFood(food, 250);
+    expect(e.kcal).toBe(160);
+    expect(e.sugar).toBeCloseTo(12);
+    expect(e.saturatedFat).toBeNull();
+    expect(e.micros).toEqual({ calcium: 300 });
+  });
+
+  it("sums recipe micros per 100 g", () => {
+    const a = { kcal: 100, protein: 0, carbs: 0, fat: 0, sugar: null, saturatedFat: null, fiber: null, salt: null, micros: { iron: 4 } };
+    const b = { ...a, micros: {} };
+    const r = computeRecipe([{ per100: a, grams: 100 }, { per100: b, grams: 100 }], 1);
+    expect(r.per100.micros).toEqual({ iron: 2 });
   });
 });

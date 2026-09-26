@@ -1,3 +1,5 @@
+import { scaleMicros, sumMicros, type Micros } from "./micros";
+
 export type Sex = "male" | "female";
 export type Goal = "lose" | "maintain" | "gain";
 
@@ -84,4 +86,70 @@ export function round(n: number, digits = 0) {
 
 export function fmt(n: number, digits = 0) {
   return new Intl.NumberFormat("de-DE", { maximumFractionDigits: digits }).format(round(n, digits));
+}
+
+export type FullNutrients = Nutrients & {
+  sugar: number | null;
+  saturatedFat: number | null;
+  fiber: number | null;
+  salt: number | null;
+};
+
+const OPTIONAL_KEYS = ["sugar", "saturatedFat", "fiber", "salt"] as const;
+
+/**
+ * Per-100 g values of a recipe from its ingredients. `cookedGrams` is the weighed result after
+ * cooking (water loss or gain); without it the raw ingredient weight is used. An optional nutrient
+ * is reported only if at least one ingredient knows it.
+ */
+export function computeRecipe(
+  ingredients: { per100: FullNutrients & { micros?: Micros | null }; grams: number }[],
+  servings: number,
+  cookedGrams?: number | null,
+) {
+  const rawGrams = ingredients.reduce((s, i) => s + i.grams, 0);
+  const totalGrams = cookedGrams && cookedGrams > 0 ? cookedGrams : rawGrams;
+  const total = sumNutrients(ingredients.map((i) => scaleNutrients(i.per100, i.grams)));
+  const f = totalGrams > 0 ? 100 / totalGrams : 0;
+
+  const per100: FullNutrients = {
+    kcal: total.kcal * f,
+    protein: total.protein * f,
+    carbs: total.carbs * f,
+    fat: total.fat * f,
+    sugar: null,
+    saturatedFat: null,
+    fiber: null,
+    salt: null,
+  };
+  for (const key of OPTIONAL_KEYS) {
+    const known = ingredients.filter((i) => i.per100[key] !== null);
+    if (known.length) per100[key] = known.reduce((s, i) => s + (i.per100[key] as number) * (i.grams / 100), 0) * f;
+  }
+
+  const micros = scaleMicros(
+    sumMicros(ingredients.map((i) => scaleMicros(i.per100.micros, i.grams / 100))),
+    f,
+  );
+
+  return {
+    per100: { ...per100, micros },
+    total,
+    totalGrams,
+    servingGrams: servings > 0 ? totalGrams / servings : totalGrams,
+  };
+}
+
+/** Everything an entry stores, scaled from a food's per-100 g values to `grams`. */
+export function scaleFood(food: FullNutrients & { micros?: Micros | null }, grams: number) {
+  const f = grams / 100;
+  const opt = (v: number | null) => (v === null ? null : v * f);
+  return {
+    ...scaleNutrients(food, grams),
+    sugar: opt(food.sugar),
+    saturatedFat: opt(food.saturatedFat),
+    fiber: opt(food.fiber),
+    salt: opt(food.salt),
+    micros: scaleMicros(food.micros, f),
+  };
 }

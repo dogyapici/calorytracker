@@ -1,8 +1,18 @@
 import { fmt } from "@/lib/nutrition";
 
-export function ProgressBar({ value, max, color = "bg-brand-500" }: { value: number; max: number; color?: string }) {
+export function ProgressBar({
+  value,
+  max,
+  color = "bg-brand-500",
+  overIsBad = true,
+}: {
+  value: number;
+  max: number;
+  color?: string;
+  overIsBad?: boolean;
+}) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-  const over = max > 0 && value > max;
+  const over = overIsBad && max > 0 && value > max;
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
       <div className={`h-full rounded-full ${over ? "bg-red-500" : color}`} style={{ width: `${pct}%` }} />

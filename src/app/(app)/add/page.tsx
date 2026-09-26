@@ -5,9 +5,10 @@ import { FoodList, type FoodListItem } from "@/components/food-list";
 import type { Food } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
-import { MEALS } from "@/lib/nutrition";
 import { searchProducts, type OffFood } from "@/lib/off";
-import { getFavoriteFoods, getRecentFoods, searchLocalFoods } from "@/lib/queries";
+import { logSavedMeal } from "@/app/meal-actions";
+import { fmt, MEALS } from "@/lib/nutrition";
+import { getFavoriteFoods, getRecentFoods, getRecipes, getSavedMeals, searchLocalFoods } from "@/lib/queries";
 
 export const metadata = { title: "Hinzufügen" };
 
@@ -32,7 +33,7 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
     brand: f.brand,
     kcal: f.kcal,
     imageUrl: f.imageUrl,
-    badge: f.source === "custom" ? "Eigenes" : undefined,
+    badge: f.source === "custom" ? "Eigenes" : f.source === "recipe" ? "Rezept" : undefined,
   });
 
   let local: Food[] = [];
@@ -59,7 +60,9 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
       imageUrl: f.imageUrl,
     }));
 
-  const [recent, favorites] = q ? [[], []] : await Promise.all([getRecentFoods(user.id), getFavoriteFoods(user.id)]);
+  const [recent, favorites, recipes, savedMeals] = q
+    ? [[], [], [], []]
+    : await Promise.all([getRecentFoods(user.id), getFavoriteFoods(user.id), getRecipes(user.id), getSavedMeals(user.id)]);
 
   return (
     <div className="space-y-4">
@@ -100,10 +103,43 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
         </>
       ) : (
         <>
+          {savedMeals.length > 0 && (
+            <section className="space-y-2">
+              <div className="flex items-baseline justify-between">
+                <h2 className="text-sm font-semibold muted">Meine Mahlzeiten</h2>
+                <Link href={`/meals${ctx}`} className="text-xs font-semibold text-brand-600">
+                  Verwalten
+                </Link>
+              </div>
+              <ul className="card divide-y divide-zinc-100 p-0 dark:divide-zinc-800">
+                {savedMeals.map((m) => (
+                  <li key={m.id} className="flex items-center gap-3 px-4 py-2.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{m.name}</p>
+                      <p className="truncate text-xs muted">{m.items.map((i) => i.food.name).join(", ")}</p>
+                    </div>
+                    <span className="shrink-0 text-sm tabular-nums">{fmt(m.kcal)} kcal</span>
+                    <form action={logSavedMeal}>
+                      <input type="hidden" name="id" value={m.id} />
+                      <input type="hidden" name="day" value={day} />
+                      <input type="hidden" name="meal" value={meal.key} />
+                      <button className="btn-primary px-3 py-1.5 text-xs">Eintragen</button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {favorites.length > 0 && (
             <section className="space-y-2">
               <h2 className="text-sm font-semibold muted">Favoriten</h2>
               <FoodList items={favorites.map(localItem)} />
+            </section>
+          )}
+          {recipes.length > 0 && (
+            <section className="space-y-2">
+              <h2 className="text-sm font-semibold muted">Meine Rezepte</h2>
+              <FoodList items={recipes.map(localItem)} />
             </section>
           )}
           <section className="space-y-2">
@@ -117,9 +153,14 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
         </>
       )}
 
-      <Link href={`/foods/new${ctx}`} className="btn-secondary w-full">
-        Eigenes Lebensmittel anlegen
-      </Link>
+      <div className="grid grid-cols-2 gap-2">
+        <Link href={`/foods/new${ctx}`} className="btn-secondary">
+          Eigenes Lebensmittel
+        </Link>
+        <Link href={`/recipes${ctx}`} className="btn-secondary">
+          Rezepte
+        </Link>
+      </div>
     </div>
   );
 }

@@ -2,8 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
-import { fetchProduct } from "@/lib/off";
-import { findFoodByBarcode, upsertOffFood } from "@/lib/queries";
+import { getOrImportBarcode } from "@/lib/queries";
 
 export const metadata = { title: "Barcode" };
 
@@ -13,15 +12,12 @@ export default async function BarcodePage({ params, searchParams }: PageProps<"/
   const sp = await searchParams;
   const ctx = `?${new URLSearchParams({ day: dayOrToday(sp.day), meal: typeof sp.meal === "string" ? sp.meal : "snack" })}`;
 
-  let foodId = (await findFoodByBarcode(code))?.id;
+  let foodId: number | undefined;
   let failed = false;
-  if (!foodId) {
-    try {
-      const product = await fetchProduct(code);
-      if (product) foodId = (await upsertOffFood(product)).id;
-    } catch {
-      failed = true;
-    }
+  try {
+    foodId = (await getOrImportBarcode(code))?.id;
+  } catch {
+    failed = true;
   }
   if (foodId) redirect(`/food/${foodId}${ctx}`);
 

@@ -8,7 +8,8 @@ import { db } from "@/db";
 import { entries, favorites, foods, profiles, users, weights } from "@/db/schema";
 import { createSession, destroySession, requireUser } from "@/lib/auth";
 import { dayOrToday, isIsoDay, today } from "@/lib/dates";
-import { scaleNutrients } from "@/lib/nutrition";
+import { scaleFood } from "@/lib/nutrition";
+import { scaleMicros } from "@/lib/micros";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { getLatestWeight, getVisibleFood } from "@/lib/queries";
 
@@ -104,7 +105,7 @@ export async function addEntry(_: FormState, formData: FormData): Promise<FormSt
   const food = await getVisibleFood(user.id, foodId);
   if (!food) return { error: "Lebensmittel nicht gefunden." };
 
-  const n = scaleNutrients(food, grams);
+  const n = scaleFood(food, grams);
   await db.insert(entries).values({
     userId: user.id,
     day,
@@ -138,6 +139,7 @@ export async function updateEntry(_: FormState, formData: FormData): Promise<For
 
   // Rescale the stored snapshot so edits work even if the food was deleted.
   const factor = grams / entry.grams;
+  const opt = (v: number | null) => (v === null ? null : v * factor);
   await db
     .update(entries)
     .set({
@@ -147,6 +149,11 @@ export async function updateEntry(_: FormState, formData: FormData): Promise<For
       protein: entry.protein * factor,
       carbs: entry.carbs * factor,
       fat: entry.fat * factor,
+      sugar: opt(entry.sugar),
+      saturatedFat: opt(entry.saturatedFat),
+      fiber: opt(entry.fiber),
+      salt: opt(entry.salt),
+      micros: scaleMicros(entry.micros, factor),
     })
     .where(eq(entries.id, id));
   revalidatePath("/");
@@ -178,18 +185,7 @@ export async function copyMeal(formData: FormData) {
     .where(and(eq(entries.userId, user.id), eq(entries.day, from), eq(entries.meal, m)));
   if (source.length) {
     await db.insert(entries).values(
-      source.map((e) => ({
-        userId: user.id,
-        day: to,
-        meal: m,
-        foodId: e.foodId,
-        name: e.name,
-        grams: e.grams,
-        kcal: e.kcal,
-        protein: e.protein,
-        carbs: e.carbs,
-        fat: e.fat,
-      })),
+      source.map(({ id: _id, createdAt: _createdAt, ...e }) => ({ ...e, day: to })),
     );
   }
   revalidatePath("/");

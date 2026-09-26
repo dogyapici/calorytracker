@@ -1,3 +1,5 @@
+import { parseOffMicros, type Micros } from "./micros";
+
 /**
  * Open Food Facts client. Their API asks for a descriptive User-Agent and allows
  * roughly 10 searches and 100 product lookups per minute per IP, so searches run
@@ -33,6 +35,7 @@ export type OffFood = {
   servingGrams: number | null;
   servingLabel: string | null;
   imageUrl: string | null;
+  micros: Micros;
 };
 
 type RawProduct = Record<string, unknown> & { nutriments?: Record<string, unknown> };
@@ -77,6 +80,7 @@ export function parseProduct(raw: RawProduct): OffFood | null {
     servingGrams: servingGrams && servingGrams > 0 ? servingGrams : null,
     servingLabel: str(raw.serving_size),
     imageUrl: str(raw.image_front_small_url),
+    micros: parseOffMicros(n),
   };
 }
 

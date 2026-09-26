@@ -3,7 +3,7 @@ import { CalorieBars } from "@/components/charts";
 import { requireUser } from "@/lib/auth";
 import { addDays, formatDay, today } from "@/lib/dates";
 import { fmt } from "@/lib/nutrition";
-import { getDailyTotals, getProfile, getWeights } from "@/lib/queries";
+import { getDailyTotals, getProfile, getStreak, getWeights } from "@/lib/queries";
 
 export const metadata = { title: "Statistik" };
 
@@ -16,10 +16,11 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
   const to = today();
   const from = addDays(to, -(range - 1));
 
-  const [profile, totals, weights] = await Promise.all([
+  const [profile, totals, weights, streak] = await Promise.all([
     getProfile(user.id),
     getDailyTotals(user.id, from, to),
     getWeights(user.id, 400),
+    getStreak(user.id),
   ]);
 
   const byDay = new Map(totals.map((t) => [t.day, t]));
@@ -68,6 +69,17 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
           <p className="text-xs muted">Gewicht</p>
           <p className="text-xl font-bold tabular-nums">{weightChange === null ? "–" : `${weightChange > 0 ? "+" : ""}${fmt(weightChange, 1)}`}</p>
           <p className="text-xs muted">kg im Zeitraum</p>
+        </div>
+      </section>
+
+      <section className="card flex items-center justify-around text-center">
+        <div>
+          <p className="text-2xl font-bold tabular-nums">🔥 {streak.current}</p>
+          <p className="text-xs muted">Tage in Folge</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold tabular-nums">{streak.longest}</p>
+          <p className="text-xs muted">Längste Serie</p>
         </div>
       </section>
 
