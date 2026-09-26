@@ -4,9 +4,14 @@ import { parseOffMicros, type Micros } from "./micros";
  * Open Food Facts client. Their API asks for a descriptive User-Agent and allows
  * roughly 10 searches and 100 product lookups per minute per IP, so searches run
  * only on submit and every picked product is cached in our own `foods` table.
+ *
+ * Search uses their fast search service (Search-a-licious) first. The old
+ * cgi/search.pl is often slow on the first request for a term and only answers
+ * on a second try, so it is the fallback, retried once.
  */
 
 const OFF_BASE = process.env.OFF_BASE_URL ?? "https://world.openfoodfacts.org";
+const OFF_SEARCH_BASE = process.env.OFF_SEARCH_URL ?? "https://search.openfoodfacts.org";
 const USER_AGENT = `Kalorientracker/1.0 (${process.env.OFF_CONTACT ?? "private use"})`;
 const FIELDS = [
   "code",
@@ -84,10 +89,10 @@ export function parseProduct(raw: RawProduct): OffFood | null {
   };
 }
 
-async function offFetch(url: string): Promise<unknown> {
+async function offFetch(url: string, timeout = 12_000): Promise<unknown> {
   const res = await fetch(url, {
     headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
-    signal: AbortSignal.timeout(12_000),
+    signal: AbortSignal.timeout(timeout),
     next: { revalidate: 60 * 60 * 24 },
   });
   if (res.status === 404) return null;
@@ -105,7 +110,27 @@ export async function fetchProduct(barcode: string): Promise<OffFood | null> {
   return parseProduct({ code: barcode, ...data.product });
 }
 
-export async function searchProducts(query: string, pageSize = 24): Promise<OffFood[]> {
+function uniqueFoods(products: RawProduct[] | undefined): OffFood[] {
+  const seen = new Set<string>();
+  const out: OffFood[] = [];
+  for (const raw of products ?? []) {
+    const food = parseProduct(raw);
+    if (food && !seen.has(food.barcode)) {
+      seen.add(food.barcode);
+      out.push(food);
+    }
+  }
+  return out;
+}
+
+async function searchFast(query: string, pageSize: number): Promise<OffFood[]> {
+  const params = new URLSearchParams({ q: query, langs: "de", page_size: String(pageSize), fields: FIELDS });
+  const data = (await offFetch(`${OFF_SEARCH_BASE}/search?${params}`, 8_000)) as { hits?: RawProduct[] } | null;
+  if (!data || !Array.isArray(data.hits)) throw new Error("Unerwartete Antwort der Suche");
+  return uniqueFoods(data.hits);
+}
+
+async function searchLegacy(query: string, pageSize: number): Promise<OffFood[]> {
   const params = new URLSearchParams({
     search_terms: query,
     search_simple: "1",
@@ -116,15 +141,17 @@ export async function searchProducts(query: string, pageSize = 24): Promise<OffF
     lc: "de",
     sort_by: "unique_scans_n",
   });
-  const data = (await offFetch(`${OFF_BASE}/cgi/search.pl?${params}`)) as { products?: RawProduct[] } | null;
-  const seen = new Set<string>();
-  const out: OffFood[] = [];
-  for (const raw of data?.products ?? []) {
-    const food = parseProduct(raw);
-    if (food && !seen.has(food.barcode)) {
-      seen.add(food.barcode);
-      out.push(food);
-    }
+  const url = `${OFF_BASE}/cgi/search.pl?${params}`;
+  const data = (await offFetch(url, 15_000).catch(() => offFetch(url, 15_000))) as { products?: RawProduct[] } | null;
+  return uniqueFoods(data?.products);
+}
+
+export async function searchProducts(query: string, pageSize = 24): Promise<OffFood[]> {
+  try {
+    const fast = await searchFast(query, pageSize);
+    if (fast.length) return fast;
+  } catch (e) {
+    console.warn("OFF fast search failed, falling back", e instanceof Error ? e.message : e);
   }
-  return out;
+  return searchLegacy(query, pageSize);
 }

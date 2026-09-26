@@ -31,6 +31,16 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
     food.source === "recipe" ? getRecipe(user.id, food.id) : null,
   ]);
 
+  // Open Food Facts liefert Vorschaubilder in 100/200 px; für die Detailseite nehmen wir 400 px.
+  const image = food.imageUrl?.replace(/\.(100|200)\.jpg$/, ".400.jpg") ?? null;
+  const subtitle = [food.brand, food.source === "custom" ? "Eigenes Lebensmittel" : food.source === "recipe" ? "Rezept" : null].filter(Boolean).join(" · ");
+  const macros = [
+    { key: "protein", label: "Eiweiß", grams: food.protein, kcal: food.protein * 4, color: "bg-macro-protein" },
+    { key: "carbs", label: "Kohlenh.", grams: food.carbs, kcal: food.carbs * 4, color: "bg-macro-carbs" },
+    { key: "fat", label: "Fett", grams: food.fat, kcal: food.fat * 9, color: "bg-macro-fat" },
+  ];
+  const macroKcal = macros.reduce((sum, m) => sum + m.kcal, 0);
+
   const microRows = MICROS.filter((m) => food.micros?.[m.key] !== undefined).map((m) => ({ ...m, value: food.micros![m.key]! }));
 
   const rows: [string, number | null, string][] = [
@@ -46,21 +56,57 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
 
   return (
     <div className="space-y-4">
-      <header className="flex items-start gap-3">
+      <header className="flex items-center justify-between gap-3">
         <Link href={`/add?day=${day}&meal=${meal}`} className="btn-secondary px-3" aria-label="Zurück">
           <Icon name="back" />
         </Link>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-h2">{food.name}</h1>
-          <p className="text-sm muted">{[food.brand, food.source === "custom" ? "Eigenes Lebensmittel" : food.source === "recipe" ? "Rezept" : null].filter(Boolean).join(" · ")}</p>
-        </div>
         <form action={toggleFavorite}>
           <input type="hidden" name="foodId" value={food.id} />
-          <PendingButton className={`btn px-3 text-xl ${favorite ? "text-macro-carbs" : "text-text-tertiary"}`} aria-label={favorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"}>
+          <PendingButton className={`btn-secondary px-3 ${favorite ? "text-macro-carbs" : "text-text-tertiary"}`} aria-label={favorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"}>
             <Icon name="star" filled={favorite} />
           </PendingButton>
         </form>
       </header>
+
+      <section className="card animate-enter overflow-hidden p-0">
+        {image && (
+          <div className="flex justify-center bg-white p-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={image} alt={`Produktbild ${food.name}`} className="h-52 w-full object-contain" />
+          </div>
+        )}
+        <div className="space-y-4 p-card">
+          <div>
+            {subtitle && <p className="text-label muted">{subtitle}</p>}
+            <h1 className="text-h1">{food.name}</h1>
+          </div>
+          <p className="tabular-nums">
+            <span className="text-display">{fmt(food.kcal)}</span>
+            <span className="ml-1.5 text-label muted">kcal pro 100 g</span>
+          </p>
+          {macroKcal > 0 && (
+            <div className="flex h-2 origin-left animate-grow overflow-hidden rounded-full bg-surface-muted" aria-hidden>
+              {macros.map((m) => (
+                <div key={m.key} className={m.color} style={{ width: `${(m.kcal / macroKcal) * 100}%` }} />
+              ))}
+            </div>
+          )}
+          <dl className="grid grid-cols-3 gap-2">
+            {macros.map((m) => (
+              <div key={m.key} className="rounded-button bg-surface-muted px-3 py-2">
+                <dt className="flex items-center gap-1.5 text-caption muted">
+                  <span aria-hidden className={`h-2 w-2 rounded-full ${m.color}`} />
+                  {m.label}
+                </dt>
+                <dd className="text-h3 tabular-nums">
+                  {fmt(m.grams, 1)}
+                  <span className="ml-0.5 text-caption muted">g</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
 
       <AmountForm
         action={addEntry}
