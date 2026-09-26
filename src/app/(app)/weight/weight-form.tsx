@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useState } from "react";
 import { logWeight, type FormState } from "@/app/actions";
 import { FormMessage, SubmitButton } from "@/components/form-bits";
 import { Icon } from "@/components/icons";
+import { PhotoPicker } from "@/components/photo-picker";
 import { shrink } from "@/lib/shrink-image";
 
 const MEASURES = [
@@ -19,19 +20,15 @@ export function WeightForm({ today, lastKg }: { today: string; lastKg: number | 
   const [photo, setPhoto] = useState("");
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   // A successful save clears the form, including the photo preview.
   const [state, action] = useActionState(async (prev: FormState, formData: FormData) => {
     const result = await logWeight(prev, formData);
-    if (result?.ok) {
-      setPhoto("");
-      if (fileRef.current) fileRef.current.value = "";
-    }
+    if (result?.ok) setPhoto("");
     return result;
   }, undefined);
 
-  const onFile = async (file: File | undefined) => {
+  const onFile = async (file: Blob | undefined) => {
     setPhotoError(null);
     if (!file) return setPhoto("");
     setBusy(true);
@@ -75,11 +72,7 @@ export function WeightForm({ today, lastKg }: { today: string; lastKg: number | 
 
       <div className="space-y-2">
         <input type="hidden" name="photo" value={photo} />
-        <label className="btn-secondary w-full cursor-pointer">
-          <Icon name="camera" size={20} />
-          {photo ? "Anderes Foto wählen" : "Foto hinzufügen (optional)"}
-          <input ref={fileRef} type="file" accept="image/*" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
-        </label>
+        <PhotoPicker frame="tall" hint="Ganzen Körper in den Rahmen" takeLabel={photo ? "Neues Foto" : "Foto (optional)"} onPick={onFile} />
         {busy && <p className="text-sm muted">Foto wird vorbereitet…</p>}
         {photoError && <p className="text-sm text-danger">{photoError}</p>}
         {photo && (
@@ -89,10 +82,7 @@ export function WeightForm({ today, lastKg }: { today: string; lastKg: number | 
             <button
               type="button"
               className="btn absolute right-2 top-2 bg-surface/90 px-2 py-1 text-xs"
-              onClick={() => {
-                setPhoto("");
-                if (fileRef.current) fileRef.current.value = "";
-              }}
+              onClick={() => setPhoto("")}
             >
               Entfernen
             </button>

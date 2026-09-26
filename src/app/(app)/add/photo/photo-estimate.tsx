@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { addEstimatedItems, estimateMealPhoto, type EstimateState } from "@/app/ai-actions";
 import { FormMessage, SubmitButton } from "@/components/form-bits";
 import { Icon } from "@/components/icons";
+import { PhotoPicker } from "@/components/photo-picker";
 import type { EstimatedItem } from "@/lib/ai-estimate";
 import { fmt, MEALS } from "@/lib/nutrition";
 import { shrink } from "@/lib/shrink-image";
@@ -59,7 +60,7 @@ export function PhotoEstimate({ day, meal }: { day: string; meal: string }) {
   }, undefined);
   const [addState, addAction] = useActionState(addEstimatedItems, undefined);
 
-  const onFile = async (file: File | undefined) => {
+  const onFile = async (file: Blob | undefined) => {
     setPhotoError(null);
     setRows(null);
     if (!file) return setPhoto("");
@@ -83,11 +84,7 @@ export function PhotoEstimate({ day, meal }: { day: string; meal: string }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photo} alt="Dein Foto der Mahlzeit" className="max-h-80 w-full rounded-button bg-surface-muted object-contain" />
         ) : null}
-        <label className="btn-secondary w-full cursor-pointer">
-          <Icon name="camera" size={20} />
-          {photo ? "Anderes Foto wählen" : "Foto aufnehmen oder wählen"}
-          <input type="file" accept="image/*" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
-        </label>
+        <PhotoPicker frame="square" hint="Mahlzeit in den Rahmen" takeLabel={photo ? "Neues Foto" : "Foto aufnehmen"} onPick={onFile} />
         {photoError && <p className="text-sm text-danger">{photoError}</p>}
         <div>
           <label className="label" htmlFor="comment">

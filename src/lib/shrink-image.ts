@@ -1,7 +1,7 @@
 const MAX_SIDE = 1280;
 
 /** Downscales a picked photo to a JPEG data URL so uploads stay small and EXIF data is dropped. */
-export async function shrink(file: File): Promise<string> {
+export async function shrink(file: Blob): Promise<string> {
   const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
   const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
