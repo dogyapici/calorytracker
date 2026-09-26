@@ -19,6 +19,36 @@ describe("estimateSchema", () => {
 });
 
 describe("estimateMeal", () => {
+  it("prefers Gemini and reads its JSON answer", async () => {
+    process.env.GEMINI_API_KEY = "g";
+    process.env.ANTHROPIC_API_KEY = "k";
+    const fetchMock = vi.fn(async (url: string, init: RequestInit) => {
+      expect(url).toContain(":generateContent");
+      expect((init.headers as Record<string, string>)["x-goog-api-key"]).toBe("g");
+      const body = JSON.parse(String(init.body));
+      expect(body.contents[0].parts[0].inlineData).toEqual({ mimeType: "image/jpeg", data: Buffer.from("img").toString("base64") });
+      expect(body.contents[0].parts[1].text).toContain("mit Öl");
+      expect(body.generationConfig.responseSchema.type).toBe("OBJECT");
+      expect(body.generationConfig.responseSchema.properties.items.items.properties.kcal).toEqual({ type: "NUMBER", description: expect.any(String) });
+      return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ items: [item], confidence: "mittel" }) }] } }] }));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await estimateMeal({ image: Buffer.from("img"), mimeType: "image/jpeg", comment: "mit Öl" });
+    expect(r.items[0].name).toBe("Apfel");
+    expect(fetchMock).toHaveBeenCalledOnce();
+    vi.unstubAllGlobals();
+    delete process.env.GEMINI_API_KEY;
+  });
+
+  it("rejects Gemini answers that don't match the schema", async () => {
+    process.env.GEMINI_API_KEY = "g";
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"items":[{"name":"x"}]}' }] } }] }))));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(estimateMeal({ image: Buffer.from("x"), mimeType: "image/png", comment: "" })).rejects.toThrow("nicht geklappt");
+    vi.unstubAllGlobals();
+    delete process.env.GEMINI_API_KEY;
+  });
+
   it("sends the photo and comment and reads the tool call", async () => {
     process.env.ANTHROPIC_API_KEY = "k";
     const fetchMock = vi.fn(async (_url: string, init: RequestInit) => {

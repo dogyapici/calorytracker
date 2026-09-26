@@ -31,7 +31,7 @@ export default async function PhotoEstimatePage({ searchParams }: PageProps<"/ad
           <PhotoEstimate day={day} meal={meal.key} />
         </>
       ) : (
-        <p className="card text-label muted">Die KI ist noch nicht eingerichtet. Dafür fehlt der Schlüssel ANTHROPIC_API_KEY in den Einstellungen von Vercel.</p>
+        <p className="card text-label muted">Die KI ist noch nicht eingerichtet. Dafür fehlt der kostenlose Schlüssel GEMINI_API_KEY in den Einstellungen von Vercel.</p>
       )}
     </div>
   );

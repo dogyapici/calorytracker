@@ -1,13 +1,24 @@
 import "server-only";
 import { z } from "zod";
 
-// Schätzt Lebensmittel, Mengen und Nährwerte auf einem Mahlzeit-Foto mit
-// Claude (Anthropic Messages API). Ohne ANTHROPIC_API_KEY ist die Funktion aus.
+// Schätzt Lebensmittel, Mengen und Nährwerte auf einem Mahlzeit-Foto.
+// Standard ist Google Gemini (kostenloses Kontingent, GEMINI_API_KEY).
+// Alternativ Claude von Anthropic (ANTHROPIC_API_KEY, kostenpflichtig).
+// Sind beide Schlüssel gesetzt, gewinnt Gemini. Ohne Schlüssel ist die Funktion aus.
 
-export const DEFAULT_AI_MODEL = "claude-sonnet-5";
+export const DEFAULT_GEMINI_MODEL = "gemini-flash-latest";
+export const DEFAULT_CLAUDE_MODEL = "claude-sonnet-5";
+
+type Provider = "gemini" | "claude";
+
+function provider(): Provider | null {
+  if (process.env.GEMINI_API_KEY) return "gemini";
+  if (process.env.ANTHROPIC_API_KEY) return "claude";
+  return null;
+}
 
 export function aiEnabled() {
-  return Boolean(process.env.ANTHROPIC_API_KEY);
+  return provider() !== null;
 }
 
 const num = z.number().finite().min(0);
@@ -36,83 +47,135 @@ export type EstimatedItem = z.infer<typeof itemSchema>;
 
 const nutrient = { type: "number", minimum: 0 };
 
+const JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    items: {
+      type: "array",
+      description: "Ein Eintrag pro erkennbarem Lebensmittel oder Bestandteil, höchstens 15.",
+      items: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Kurzer deutscher Name, z. B. „Spaghetti, gekocht“" },
+          grams: { ...nutrient, description: "Geschätzte Menge in Gramm (Getränke: ml)" },
+          kcal: { ...nutrient, description: "Kilokalorien für diese Menge" },
+          protein: { ...nutrient, description: "Eiweiß in g für diese Menge" },
+          carbs: { ...nutrient, description: "Kohlenhydrate in g für diese Menge" },
+          fat: { ...nutrient, description: "Fett in g für diese Menge" },
+          sugar: { ...nutrient, description: "davon Zucker in g, falls sinnvoll schätzbar" },
+          fiber: { ...nutrient, description: "Ballaststoffe in g, falls sinnvoll schätzbar" },
+          saturatedFat: { ...nutrient, description: "gesättigte Fettsäuren in g, falls sinnvoll schätzbar" },
+          salt: { ...nutrient, description: "Salz in g, falls sinnvoll schätzbar" },
+        },
+        required: ["name", "grams", "kcal", "protein", "carbs", "fat"],
+      },
+    },
+    confidence: { type: "string", enum: ["niedrig", "mittel", "hoch"], description: "Wie sicher die Schätzung insgesamt ist" },
+    note: { type: "string", description: "Optional ein kurzer Hinweis auf Deutsch, z. B. was unsicher war. Höchstens ein Satz." },
+  },
+  required: ["items", "confidence"],
+};
+
 const TOOL = {
   name: "mahlzeit_erfassen",
   description: "Erfasst die geschätzten Lebensmittel der Mahlzeit mit Menge und Nährwerten für genau diese Menge.",
-  input_schema: {
-    type: "object",
-    properties: {
-      items: {
-        type: "array",
-        description: "Ein Eintrag pro erkennbarem Lebensmittel oder Bestandteil, höchstens 15.",
-        items: {
-          type: "object",
-          properties: {
-            name: { type: "string", description: "Kurzer deutscher Name, z. B. „Spaghetti, gekocht“" },
-            grams: { ...nutrient, description: "Geschätzte Menge in Gramm (Getränke: ml)" },
-            kcal: { ...nutrient, description: "Kilokalorien für diese Menge" },
-            protein: { ...nutrient, description: "Eiweiß in g für diese Menge" },
-            carbs: { ...nutrient, description: "Kohlenhydrate in g für diese Menge" },
-            fat: { ...nutrient, description: "Fett in g für diese Menge" },
-            sugar: { ...nutrient, description: "davon Zucker in g, falls sinnvoll schätzbar" },
-            fiber: { ...nutrient, description: "Ballaststoffe in g, falls sinnvoll schätzbar" },
-            saturatedFat: { ...nutrient, description: "gesättigte Fettsäuren in g, falls sinnvoll schätzbar" },
-            salt: { ...nutrient, description: "Salz in g, falls sinnvoll schätzbar" },
-          },
-          required: ["name", "grams", "kcal", "protein", "carbs", "fat"],
-        },
-      },
-      confidence: { type: "string", enum: ["niedrig", "mittel", "hoch"], description: "Wie sicher die Schätzung insgesamt ist" },
-      note: { type: "string", description: "Optional ein kurzer Hinweis auf Deutsch, z. B. was unsicher war. Höchstens ein Satz." },
-    },
-    required: ["items", "confidence"],
-  },
+  input_schema: JSON_SCHEMA,
 };
+
+// Gemini erwartet das Schema im OpenAPI-Format mit großgeschriebenen Typen.
+// Untergrenzen lassen wir weg, die prüft estimateSchema ohnehin.
+function toGeminiSchema(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(toGeminiSchema);
+  if (!schema || typeof schema !== "object") return schema;
+  return Object.fromEntries(
+    Object.entries(schema)
+      .filter(([k]) => k !== "minimum")
+      .map(([k, v]) => [k, k === "type" && typeof v === "string" ? v.toUpperCase() : toGeminiSchema(v)]),
+  );
+}
 
 const SYSTEM = `Du bist eine erfahrene Ernährungsberaterin. Du bekommst ein Foto einer Mahlzeit und manchmal einen Kommentar der Person.
 Erkenne die einzelnen Lebensmittel, schätze realistisch die Menge in Gramm (Teller, Besteck und Verpackungen helfen beim Maßstab) und gib die Nährwerte für genau diese Menge an.
 Der Kommentar hat Vorrang vor dem Foto, z. B. bei Mengen, Zutaten oder Zubereitung. Denke an versteckte Kalorien wie Öl, Butter, Soßen und Dressings.
-Wenn auf dem Foto kein Essen zu sehen ist, gib eine leere Liste zurück und erkläre es im Hinweis. Antworte ausschließlich über das Werkzeug.`;
+Wenn auf dem Foto kein Essen zu sehen ist, gib eine leere Liste zurück und erkläre es im Hinweis. Antworte ausschließlich in der vorgegebenen Struktur.`;
 
 export class AiError extends Error {}
 
-export async function estimateMeal({ image, mimeType, comment }: { image: Buffer; mimeType: string; comment: string }): Promise<MealEstimate> {
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) throw new AiError("Die KI ist noch nicht eingerichtet.");
-  const base = process.env.ANTHROPIC_BASE_URL ?? "https://api.anthropic.com";
+type Photo = { image: Buffer; mimeType: string; comment: string };
 
-  const content: unknown[] = [{ type: "image", source: { type: "base64", media_type: mimeType, data: image.toString("base64") } }];
-  content.push({ type: "text", text: comment ? `Kommentar der Person: ${comment}` : "Kein Kommentar." });
+const BUSY = "Die KI ist gerade ausgelastet. Versuche es gleich noch einmal.";
+const FAILED = "Die Schätzung hat nicht geklappt. Versuche es noch einmal.";
+const UNREACHABLE = "Die KI ist gerade nicht erreichbar. Versuche es gleich noch einmal.";
 
+const commentText = (comment: string) => (comment ? `Kommentar der Person: ${comment}` : "Kein Kommentar.");
+
+export async function estimateMeal(photo: Photo): Promise<MealEstimate> {
+  const p = provider();
+  if (!p) throw new AiError("Die KI ist noch nicht eingerichtet.");
+  const raw = p === "gemini" ? await askGemini(photo) : await askClaude(photo);
+  const parsed = estimateSchema.safeParse(raw);
+  if (!parsed.success) {
+    console.error("AI estimate unparseable", p, JSON.stringify(raw).slice(0, 2000));
+    throw new AiError(FAILED);
+  }
+  return parsed.data;
+}
+
+async function post(url: string, headers: Record<string, string>, body: unknown): Promise<Response> {
   let res: Response;
   try {
-    res = await fetch(`${base}/v1/messages`, {
+    res = await fetch(url, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({
-        model: process.env.AI_MODEL || DEFAULT_AI_MODEL,
-        max_tokens: 2000,
-        system: SYSTEM,
-        tools: [TOOL],
-        tool_choice: { type: "tool", name: TOOL.name },
-        messages: [{ role: "user", content }],
-      }),
+      headers: { "content-type": "application/json", ...headers },
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(45_000),
     });
   } catch {
-    throw new AiError("Die KI ist gerade nicht erreichbar. Versuche es gleich noch einmal.");
+    throw new AiError(UNREACHABLE);
   }
   if (!res.ok) {
     console.error("AI estimate failed", res.status, await res.text().catch(() => ""));
-    throw new AiError(res.status === 429 || res.status === 529 ? "Die KI ist gerade ausgelastet. Versuche es gleich noch einmal." : "Die Schätzung hat nicht geklappt. Versuche es noch einmal.");
+    throw new AiError(res.status === 429 || res.status === 503 || res.status === 529 ? BUSY : FAILED);
   }
+  return res;
+}
 
-  const body = (await res.json()) as { content?: { type: string; name?: string; input?: unknown }[] };
-  const call = body.content?.find((c) => c.type === "tool_use" && c.name === TOOL.name);
-  const parsed = estimateSchema.safeParse(call?.input);
-  if (!parsed.success) {
-    console.error("AI estimate unparseable", JSON.stringify(body).slice(0, 2000));
-    throw new AiError("Die Schätzung hat nicht geklappt. Versuche es noch einmal.");
+async function askGemini({ image, mimeType, comment }: Photo): Promise<unknown> {
+  const base = process.env.GEMINI_BASE_URL ?? "https://generativelanguage.googleapis.com";
+  const model = process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL;
+  const res = await post(`${base}/v1beta/models/${encodeURIComponent(model)}:generateContent`, { "x-goog-api-key": process.env.GEMINI_API_KEY! }, {
+    systemInstruction: { parts: [{ text: SYSTEM }] },
+    contents: [{ role: "user", parts: [{ inlineData: { mimeType, data: image.toString("base64") } }, { text: commentText(comment) }] }],
+    generationConfig: { responseMimeType: "application/json", responseSchema: toGeminiSchema(JSON_SCHEMA), temperature: 0.2 },
+  });
+  const body = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+  const text = body.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("");
+  if (!text) {
+    console.error("AI estimate empty", JSON.stringify(body).slice(0, 2000));
+    throw new AiError(FAILED);
   }
-  return parsed.data;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+async function askClaude({ image, mimeType, comment }: Photo): Promise<unknown> {
+  const key = process.env.ANTHROPIC_API_KEY!;
+  const base = process.env.ANTHROPIC_BASE_URL ?? "https://api.anthropic.com";
+
+  const content: unknown[] = [{ type: "image", source: { type: "base64", media_type: mimeType, data: image.toString("base64") } }];
+  content.push({ type: "text", text: commentText(comment) });
+
+  const res = await post(`${base}/v1/messages`, { "x-api-key": key, "anthropic-version": "2023-06-01" }, {
+    model: process.env.AI_MODEL || DEFAULT_CLAUDE_MODEL,
+    max_tokens: 2000,
+    system: SYSTEM,
+    tools: [TOOL],
+    tool_choice: { type: "tool", name: TOOL.name },
+    messages: [{ role: "user", content }],
+  });
+  const body = (await res.json()) as { content?: { type: string; name?: string; input?: unknown }[] };
+  return body.content?.find((c) => c.type === "tool_use" && c.name === TOOL.name)?.input;
 }
