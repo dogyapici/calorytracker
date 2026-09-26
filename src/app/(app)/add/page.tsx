@@ -1,3 +1,4 @@
+import Form from "next/form";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BarcodeScanner } from "@/components/barcode-scanner";
@@ -35,6 +36,9 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
     name: f.name,
     brand: f.brand,
     kcal: f.kcal,
+    protein: f.protein,
+    carbs: f.carbs,
+    fat: f.fat,
     imageUrl: f.imageUrl,
     badge: f.source === "custom" ? "Eigenes" : f.source === "recipe" ? "Rezept" : undefined,
   });
@@ -60,6 +64,9 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
       name: f.name,
       brand: f.brand,
       kcal: f.kcal,
+      protein: f.protein,
+      carbs: f.carbs,
+      fat: f.fat,
       imageUrl: f.imageUrl,
     }));
 
@@ -79,18 +86,35 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
         </h1>
       </header>
 
-      <form className="flex gap-2" action="/add">
+      <Form className="flex gap-2" action="/add" role="search">
         <input type="hidden" name="day" value={day} />
         <input type="hidden" name="meal" value={meal.key} />
-        <input className="input" name="q" type="search" defaultValue={q} placeholder="Lebensmittel suchen, z. B. Haferflocken" enterKeyHint="search" autoFocus={!q} />
-        <PendingButton className="btn-primary">Suchen</PendingButton>
-      </form>
+        <div className="relative flex-1">
+          <Icon name="search" size={20} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+          <input
+            className="input h-button pl-10 text-body"
+            name="q"
+            type="search"
+            aria-label="Lebensmittel suchen"
+            defaultValue={q}
+            placeholder="Lebensmittel suchen, z. B. Haferflocken"
+            enterKeyHint="search"
+            autoFocus={!q}
+          />
+        </div>
+        <PendingButton className="btn-primary h-button">Suchen</PendingButton>
+      </Form>
 
-      <BarcodeScanner targetBase={ctx} />
-
-      <Link href={`/add/photo${ctx}`} className="btn-secondary w-full">
-        <span aria-hidden>📸</span> Mahlzeit per Foto schätzen
-      </Link>
+      <div className="grid grid-cols-2 gap-3">
+        <BarcodeScanner targetBase={ctx} variant="tile" />
+        <Link href={`/add/photo${ctx}`} className="card flex flex-col items-start gap-3 p-4 transition-transform active:scale-[0.97]">
+          <span aria-hidden className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-2xl">📸</span>
+          <span>
+            <span className="block text-h3">Foto schätzen</span>
+            <span className="block text-caption muted">KI schätzt die Nährwerte</span>
+          </span>
+        </Link>
+      </div>
 
       {q ? (
         <>

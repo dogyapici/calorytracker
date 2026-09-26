@@ -19,7 +19,16 @@ async function createDetector(): Promise<Detector> {
  * Scans EAN/UPC barcodes with the camera. By default it navigates to the barcode page;
  * pass `onCode` to handle the code in place instead (e.g. in the recipe editor).
  */
-export function BarcodeScanner({ targetBase = "", onCode }: { targetBase?: string; onCode?: (code: string) => void }) {
+export function BarcodeScanner({
+  targetBase = "",
+  onCode,
+  variant = "button",
+}: {
+  targetBase?: string;
+  onCode?: (code: string) => void;
+  /** "tile" draws a large card for the add page; the open scanner then spans the whole grid row. */
+  variant?: "button" | "tile";
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,9 +96,28 @@ export function BarcodeScanner({ targetBase = "", onCode }: { targetBase?: strin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  const start = () => {
+    setError(null);
+    setOpen(true);
+  };
+
+  if (!open && variant === "tile") {
+    return (
+      <button type="button" className="card flex flex-col items-start gap-3 p-4 text-left transition-transform active:scale-[0.97]" onClick={start}>
+        <span aria-hidden className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary">
+          <Icon name="barcode" size={26} />
+        </span>
+        <span>
+          <span className="block text-h3">Barcode scannen</span>
+          <span className="block text-caption muted">Mit Kamera oder Nummer</span>
+        </span>
+      </button>
+    );
+  }
+
   if (!open) {
     return (
-      <button type="button" className="btn-secondary w-full" onClick={() => { setError(null); setOpen(true); }}>
+      <button type="button" className="btn-secondary w-full" onClick={start}>
         <Icon name="barcode" size={20} />
         Barcode scannen
       </button>
@@ -97,7 +125,7 @@ export function BarcodeScanner({ targetBase = "", onCode }: { targetBase?: strin
   }
 
   return (
-    <div className="card space-y-3">
+    <div className={`card space-y-3 ${variant === "tile" ? "order-last col-span-2 animate-enter" : ""}`}>
       <div className="relative overflow-hidden rounded-button bg-inverse-surface">
         <video ref={videoRef} className="aspect-[4/3] w-full object-cover" playsInline muted />
         <div className="pointer-events-none absolute inset-x-8 top-1/2 h-0.5 -translate-y-1/2 bg-danger/80" />
@@ -109,6 +137,7 @@ export function BarcodeScanner({ targetBase = "", onCode }: { targetBase?: strin
           className="input"
           inputMode="numeric"
           placeholder="Barcode eingeben"
+          aria-label="Barcode eingeben"
           value={manual}
           onChange={(e) => setManual(e.target.value)}
           onKeyDown={(e) => {

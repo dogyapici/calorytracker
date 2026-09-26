@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { parseProduct } from "../off";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { parseProduct, searchProducts } from "../off";
 
 describe("parseProduct", () => {
   it("prefers German names and reads per-100g nutrients", () => {
@@ -54,5 +54,39 @@ describe("micronutrients", () => {
       nutriments: { "energy-kcal_100g": 64, "calcium_100g": 0.12, "vitamin-b12_100g": 0.0000004, "vitamin-c_100g": "0" },
     });
     expect(food?.micros).toEqual({ calcium: 120, vitaminB12: 0.4, vitaminC: 0 });
+  });
+});
+
+describe("searchProducts", () => {
+  const hit = { code: "123456789", product_name: "Haferflocken", brands: ["Kölln"], nutriments: { "energy-kcal_100g": 370 } };
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("uses the fast search first", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      expect(url).toContain("search.openfoodfacts.org/search?q=hafer");
+      return Response.json({ hits: [hit, hit] });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await searchProducts("hafer");
+    expect(r).toHaveLength(1);
+    expect(r[0]).toMatchObject({ name: "Haferflocken", brand: "Kölln", kcal: 370 });
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("falls back to the old search and retries it once", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    let legacyCalls = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("search.openfoodfacts.org")) return new Response("down", { status: 503 });
+        legacyCalls++;
+        if (legacyCalls === 1) throw new Error("timeout");
+        return Response.json({ products: [hit] });
+      }),
+    );
+    const r = await searchProducts("hafer");
+    expect(legacyCalls).toBe(2);
+    expect(r[0].barcode).toBe("123456789");
   });
 });
