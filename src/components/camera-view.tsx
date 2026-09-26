@@ -94,7 +94,7 @@ export function CameraView({ frame, hint, onClose, onVideo, onCapture, children 
   const blur = "bg-black/45 backdrop-blur-md";
 
   return createPortal(
-    <div className="fixed inset-0 z-50 bg-black text-white" role="dialog" aria-modal="true" aria-label="Kamera">
+    <div className="fixed inset-0 z-50 animate-fade bg-black text-white" role="dialog" aria-modal="true" aria-label="Kamera">
       <video ref={videoRef} className="absolute inset-0 h-full w-full object-cover" playsInline muted />
 
       {size && (

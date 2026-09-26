@@ -30,9 +30,9 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-touch flex-col items-center gap-0.5 pb-2 pt-1.5 text-caption ${active ? "text-primary" : "text-text-tertiary"}`}
+                className={`group flex min-h-touch flex-col items-center gap-0.5 pb-2 pt-1.5 text-caption transition-colors duration-200 ${active ? "text-primary" : "text-text-tertiary"}`}
               >
-                <span className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors duration-200 ${active ? "bg-primary-soft" : ""}`}>
+                <span className={`flex h-8 w-14 items-center justify-center rounded-full transition-[background-color,transform] duration-300 ease-out group-active:scale-90 ${active ? "scale-100 bg-primary-soft" : "scale-90 bg-transparent"}`}>
                   <Icon name={item.icon} />
                 </span>
                 {item.label}

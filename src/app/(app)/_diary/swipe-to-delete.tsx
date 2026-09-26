@@ -44,7 +44,7 @@ export function SwipeToDelete({ id, name, children }: { id: number; name: string
 
   if (deleted) {
     return (
-      <div className="flex items-center justify-between gap-3 py-3 text-label" role="status">
+      <div className="flex animate-enter items-center justify-between gap-3 py-3 text-label" role="status">
         <span className="min-w-0 truncate muted">„{name}“ gelöscht</span>
         <button type="button" className="shrink-0 font-semibold text-primary" onClick={undo}>
           Rückgängig
@@ -54,7 +54,7 @@ export function SwipeToDelete({ id, name, children }: { id: number; name: string
   }
 
   return (
-    <div className="relative -mx-card overflow-hidden">
+    <div className="relative -mx-card overflow-hidden" data-swipe-row>
       <button
         type="button"
         onClick={remove}

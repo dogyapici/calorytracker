@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { logWeight, type FormState } from "@/app/actions";
 import { FormMessage, SubmitButton } from "@/components/form-bits";
+import { Collapse } from "@/components/collapse";
 import { Icon } from "@/components/icons";
 import { PhotoPicker } from "@/components/photo-picker";
 import { shrink } from "@/lib/shrink-image";
@@ -18,6 +19,7 @@ const MEASURES = [
 
 export function WeightForm({ today, lastKg }: { today: string; lastKg: number | null }) {
   const [photo, setPhoto] = useState("");
+  const [measuresOpen, setMeasuresOpen] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -55,20 +57,20 @@ export function WeightForm({ today, lastKg }: { today: string; lastKg: number | 
         </div>
       </div>
 
-      <details className="group rounded-button border border-border px-3 py-2">
-        <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium">
+      <div className="rounded-button border border-border px-3 py-2">
+        <button type="button" onClick={() => setMeasuresOpen(!measuresOpen)} aria-expanded={measuresOpen} className="flex w-full items-center justify-between text-left text-sm font-medium">
           Körpermaße (optional)
-          <Icon name="expand" size={20} className="text-text-secondary transition group-open:rotate-180" />
-        </summary>
-        <div className="mt-3 grid grid-cols-2 gap-3">
+          <Icon name="expand" size={20} className={`text-text-secondary transition-transform duration-300 ease-out ${measuresOpen ? "rotate-180" : ""}`} />
+        </button>
+        <Collapse open={measuresOpen} className="grid grid-cols-2 gap-3 pb-1 pt-3">
           {MEASURES.map(([key, label]) => (
             <div key={key}>
               <label className="label" htmlFor={key}>{label}</label>
               <input className="input tabular-nums" id={key} name={key} inputMode="decimal" defaultValue={state?.values?.[key]} />
             </div>
           ))}
-        </div>
-      </details>
+        </Collapse>
+      </div>
 
       <div className="space-y-2">
         <input type="hidden" name="photo" value={photo} />

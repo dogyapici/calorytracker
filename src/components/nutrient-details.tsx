@@ -2,7 +2,7 @@ import type { Entry } from "@/db/schema";
 import { EXTRA_LIMITS, MICROS, sumMicros } from "@/lib/micros";
 import { fmt } from "@/lib/nutrition";
 import { ProgressBar } from "./progress";
-import { Icon } from "@/components/icons";
+import { Disclosure } from "./collapse";
 
 function sumKnown(entries: Entry[], key: "sugar" | "saturatedFat" | "fiber" | "salt") {
   const known = entries.filter((e) => e[key] !== null);
@@ -24,12 +24,8 @@ export function NutrientDetails({ entries, kcalTarget }: { entries: Entry[]; kca
   ];
 
   return (
-    <details className="card group">
-      <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
-        Weitere Nährwerte
-        <Icon name="expand" size={20} className="text-text-secondary transition group-open:rotate-180" />
-      </summary>
-      <div className="mt-3 space-y-3">
+    <Disclosure title="Weitere Nährwerte">
+      <div className="space-y-3">
         {extras.map((x) => (
           <div key={x.label}>
             <div className="mb-1 flex justify-between gap-2 text-sm">
@@ -73,6 +69,6 @@ export function NutrientDetails({ entries, kcalTarget }: { entries: Entry[]; kca
           )}
         </div>
       </div>
-    </details>
+    </Disclosure>
   );
 }

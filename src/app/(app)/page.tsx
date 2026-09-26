@@ -11,6 +11,7 @@ import { Icon } from "@/components/icons";
 
 import { PendingButton } from "@/components/form-bits";
 import { CollapsibleMeal } from "./_diary/collapsible-meal";
+import { DaySwipe } from "./_diary/day-swipe";
 import { CLOSED_MEALS_COOKIE } from "./_diary/constants";
 import { SwipeToDelete } from "./_diary/swipe-to-delete";
 import { WaterTracker } from "./_diary/water-tracker";
@@ -33,131 +34,133 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
   const yesterday = addDays(day, -1);
 
   return (
-    <div className="space-y-4">
-      <header className="flex items-center justify-between">
-        <Link href={`/?day=${addDays(day, -1)}`} className="btn-secondary px-3" aria-label="Vorheriger Tag">
-          <Icon name="back" />
-        </Link>
-        <div className="text-center">
-          <Link href={`/calendar?month=${day.slice(0, 7)}`} className="inline-flex items-center gap-1.5 rounded-chip px-2 py-0.5 hover:bg-surface-muted" aria-label="Kalender öffnen">
-            <h1 className="text-h2">{isToday ? "Heute" : formatDay(day)}</h1>
-            <Icon name="calendar" size={20} className="text-text-secondary" />
+    <DaySwipe key={day} day={day} prev={addDays(day, -1)} next={addDays(day, 1)}>
+      <div className="space-y-4">
+        <header className="flex items-center justify-between">
+          <Link href={`/?day=${addDays(day, -1)}`} className="btn-secondary px-3" aria-label="Vorheriger Tag">
+            <Icon name="back" />
           </Link>
-          {isToday ? (
-            <p className="text-caption muted">{formatDay(day)}</p>
-          ) : (
-            <Link href="/" className="block text-xs font-semibold text-primary">
-              Zu heute
+          <div className="text-center">
+            <Link href={`/calendar?month=${day.slice(0, 7)}`} className="inline-flex items-center gap-1.5 rounded-chip px-2 py-0.5 hover:bg-surface-muted" aria-label="Kalender öffnen">
+              <h1 className="text-h2">{isToday ? "Heute" : formatDay(day)}</h1>
+              <Icon name="calendar" size={20} className="text-text-secondary" />
             </Link>
-          )}
-        </div>
-        <Link href={`/?day=${addDays(day, 1)}`} className="btn-secondary px-3" aria-label="Nächster Tag">
-          <Icon name="forward" />
-        </Link>
-      </header>
+            {isToday ? (
+              <p className="text-caption muted">{formatDay(day)}</p>
+            ) : (
+              <Link href="/" className="block text-xs font-semibold text-primary">
+                Zu heute
+              </Link>
+            )}
+          </div>
+          <Link href={`/?day=${addDays(day, 1)}`} className="btn-secondary px-3" aria-label="Nächster Tag">
+            <Icon name="forward" />
+          </Link>
+        </header>
 
-      {isToday && streak.current > 0 && (
-        <p className="flex items-center justify-center gap-2 text-sm">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-label font-semibold text-primary">
-            <span aria-hidden>🔥</span> {streak.current} {streak.current === 1 ? "Tag" : "Tage"} in Folge
-          </span>
-          {!streak.loggedToday && <span className="muted">Trag heute etwas ein, um sie zu halten.</span>}
-        </p>
-      )}
-
-      <section className="card space-y-5">
-        <div className="flex flex-col items-center gap-2">
-          <CalorieRing eaten={total.kcal} target={profile.kcalTarget} />
-          <p className="text-label muted">
-            <span className="text-text-primary">{fmt(total.kcal)}</span> von {fmt(profile.kcalTarget)}
-            <span className="ml-0.5 text-caption">kcal</span> gegessen
+        {isToday && streak.current > 0 && (
+          <p className="flex items-center justify-center gap-2 text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-label font-semibold text-primary">
+              <span aria-hidden>🔥</span> {streak.current} {streak.current === 1 ? "Tag" : "Tage"} in Folge
+            </span>
+            {!streak.loggedToday && <span className="muted">Trag heute etwas ein, um sie zu halten.</span>}
           </p>
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <MacroRow label="Eiweiß" value={total.protein} target={profile.proteinTarget} color="bg-macro-protein" />
-          <MacroRow label="Kohlenh." value={total.carbs} target={profile.carbsTarget} color="bg-macro-carbs" />
-          <MacroRow label="Fett" value={total.fat} target={profile.fatTarget} color="bg-macro-fat" />
-        </div>
-      </section>
+        )}
 
-      <NutrientDetails entries={dayEntries} kcalTarget={profile.kcalTarget} />
+        <section className="card space-y-5">
+          <div className="flex flex-col items-center gap-2">
+            <CalorieRing eaten={total.kcal} target={profile.kcalTarget} />
+            <p className="text-label muted">
+              <span className="text-text-primary">{fmt(total.kcal)}</span> von {fmt(profile.kcalTarget)}
+              <span className="ml-0.5 text-caption">kcal</span> gegessen
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <MacroRow label="Eiweiß" value={total.protein} target={profile.proteinTarget} color="bg-macro-protein" />
+            <MacroRow label="Kohlenh." value={total.carbs} target={profile.carbsTarget} color="bg-macro-carbs" />
+            <MacroRow label="Fett" value={total.fat} target={profile.fatTarget} color="bg-macro-fat" />
+          </div>
+        </section>
 
-      {MEALS.map((meal) => {
-        const items = dayEntries.filter((e) => e.meal === meal.key);
-        const mealKcal = items.reduce((s, e) => s + e.kcal, 0);
-        const addHref = `/add?day=${day}&meal=${meal.key}`;
-        const target = mealTarget(profile.kcalTarget, profile.mealSplit, meal.key);
-        return (
-          <CollapsibleMeal
-            key={meal.key}
-            mealKey={meal.key}
-            initialOpen={!closedMeals.has(meal.key)}
-            title={
-              <span className="flex items-center gap-3">
-                <MealRing emoji={meal.emoji} value={mealKcal} target={target} />
-                <span className="min-w-0">
-                  <span className="block">{meal.label}</span>
-                  <span className="block text-caption font-normal tabular-nums muted">
-                    {mealKcal > target ? `${fmt(mealKcal - target)} kcal über Ziel` : `noch ${fmt(target - mealKcal)} kcal`}
-                    {items.length > 0 && ` · ${items.length} ${items.length === 1 ? "Eintrag" : "Einträge"}`}
+        <NutrientDetails entries={dayEntries} kcalTarget={profile.kcalTarget} />
+
+        {MEALS.map((meal) => {
+          const items = dayEntries.filter((e) => e.meal === meal.key);
+          const mealKcal = items.reduce((s, e) => s + e.kcal, 0);
+          const addHref = `/add?day=${day}&meal=${meal.key}`;
+          const target = mealTarget(profile.kcalTarget, profile.mealSplit, meal.key);
+          return (
+            <CollapsibleMeal
+              key={meal.key}
+              mealKey={meal.key}
+              initialOpen={!closedMeals.has(meal.key)}
+              title={
+                <span className="flex items-center gap-3">
+                  <MealRing emoji={meal.emoji} value={mealKcal} target={target} />
+                  <span className="min-w-0">
+                    <span className="block">{meal.label}</span>
+                    <span className="block text-caption font-normal tabular-nums muted">
+                      {mealKcal > target ? `${fmt(mealKcal - target)} kcal über Ziel` : `noch ${fmt(target - mealKcal)} kcal`}
+                      {items.length > 0 && ` · ${items.length} ${items.length === 1 ? "Eintrag" : "Einträge"}`}
+                    </span>
                   </span>
                 </span>
-              </span>
-            }
-            summary={
-              <span className="text-right tabular-nums">
-                <span className="block text-body font-semibold">{fmt(mealKcal)}</span>
-                <span className="block text-caption font-normal muted">/ {fmt(target)} kcal</span>
-              </span>
-            }
-          >
-            {items.length > 0 ? (
-              <ul className="divide-y divide-border px-card">
-                {items.map((e) => (
-                  <li key={e.id}>
-                    <SwipeToDelete id={e.id} name={e.name}>
-                      <Link href={`/entry/${e.id}`} draggable={false} className="flex items-center justify-between gap-3 py-3">
-                        <div className="min-w-0">
-                          <p className="truncate">{e.name}</p>
-                          <p className="text-caption muted">
-                            {fmt(e.grams)} g · E {fmt(e.protein, 1)} · K {fmt(e.carbs, 1)} · F {fmt(e.fat, 1)}
-                          </p>
-                        </div>
-                        <span className="shrink-0">
-                          {fmt(e.kcal)}
-                          <span className="ml-0.5 text-caption muted">kcal</span>
-                        </span>
-                      </Link>
-                    </SwipeToDelete>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="px-card pt-1 text-label muted">Noch nichts eingetragen.</p>
-            )}
-            <div className="flex items-center gap-2 px-3 pb-3 pt-2">
-              <Link href={addHref} className="btn-ghost flex-1 justify-start">
-                <Icon name="add" size={20} /> Hinzufügen
-              </Link>
-              {items.length > 0 && (
-                <Link href={`/meals/new?day=${day}&meal=${meal.key}`} className="btn text-caption muted hover:bg-surface-muted">
-                  Als Mahlzeit speichern
+              }
+              summary={
+                <span className="text-right tabular-nums">
+                  <span className="block text-body font-semibold">{fmt(mealKcal)}</span>
+                  <span className="block text-caption font-normal muted">/ {fmt(target)} kcal</span>
+                </span>
+              }
+            >
+              {items.length > 0 ? (
+                <ul className="divide-y divide-border px-card">
+                  {items.map((e) => (
+                    <li key={e.id}>
+                      <SwipeToDelete id={e.id} name={e.name}>
+                        <Link href={`/entry/${e.id}`} draggable={false} className="flex items-center justify-between gap-3 py-3">
+                          <div className="min-w-0">
+                            <p className="truncate">{e.name}</p>
+                            <p className="text-caption muted">
+                              {fmt(e.grams)} g · E {fmt(e.protein, 1)} · K {fmt(e.carbs, 1)} · F {fmt(e.fat, 1)}
+                            </p>
+                          </div>
+                          <span className="shrink-0">
+                            {fmt(e.kcal)}
+                            <span className="ml-0.5 text-caption muted">kcal</span>
+                          </span>
+                        </Link>
+                      </SwipeToDelete>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="px-card pt-1 text-label muted">Noch nichts eingetragen.</p>
+              )}
+              <div className="flex items-center gap-2 px-3 pb-3 pt-2">
+                <Link href={addHref} className="btn-ghost flex-1 justify-start">
+                  <Icon name="add" size={20} /> Hinzufügen
                 </Link>
-              )}
-              {items.length === 0 && (
-                <form action={copyMeal}>
-                  <input type="hidden" name="from" value={yesterday} />
-                  <input type="hidden" name="to" value={day} />
-                  <input type="hidden" name="meal" value={meal.key} />
-                  <PendingButton className="btn text-caption muted hover:bg-surface-muted">Wie gestern</PendingButton>
-                </form>
-              )}
-            </div>
-          </CollapsibleMeal>
-        );
-      })}
+                {items.length > 0 && (
+                  <Link href={`/meals/new?day=${day}&meal=${meal.key}`} className="btn text-caption muted hover:bg-surface-muted">
+                    Als Mahlzeit speichern
+                  </Link>
+                )}
+                {items.length === 0 && (
+                  <form action={copyMeal}>
+                    <input type="hidden" name="from" value={yesterday} />
+                    <input type="hidden" name="to" value={day} />
+                    <input type="hidden" name="meal" value={meal.key} />
+                    <PendingButton className="btn text-caption muted hover:bg-surface-muted">Wie gestern</PendingButton>
+                  </form>
+                )}
+              </div>
+            </CollapsibleMeal>
+          );
+        })}
 
-      <WaterTracker day={day} ml={waterMl} targetMl={profile.waterTargetMl} />
-    </div>
+        <WaterTracker day={day} ml={waterMl} targetMl={profile.waterTargetMl} />
+      </div>
+    </DaySwipe>
   );
 }
