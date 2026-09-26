@@ -15,6 +15,13 @@
       "when": 1790455740349,
       "tag": "0001_recipes_meals_micros",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790456624893,
+      "tag": "0002_goals_photos",
+      "breakpoints": true
     }
   ]
 }

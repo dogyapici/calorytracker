@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bmr, computeRecipe, scaleFood, scaleNutrients, suggestTargets, sumNutrients } from "../nutrition";
+import { balanceCarbs, bmr, checkMacros, computeRecipe, kcalFromMacros, macroTolerance, scaleFood, scaleNutrients, suggestTargets, sumNutrients } from "../nutrition";
 import { addDays, isIsoDay, today } from "../dates";
 import { hashPassword, verifyPassword } from "../password";
 
@@ -95,5 +95,47 @@ describe("scaleFood", () => {
     const b = { ...a, micros: {} };
     const r = computeRecipe([{ per100: a, grams: 100 }, { per100: b, grams: 100 }], 1);
     expect(r.per100.micros).toEqual({ iron: 2 });
+  });
+});
+
+describe("macro targets", () => {
+  it("turns percentages into grams that match the calorie goal", () => {
+    const r = checkMacros(2000, "percent", { protein: 30, carbs: 40, fat: 30 });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.grams).toEqual({ protein: 150, carbs: 200, fat: 67 });
+    expect(Math.abs(kcalFromMacros(r.grams) - 2000)).toBeLessThanOrEqual(macroTolerance(2000));
+  });
+
+  it("rejects percentages that do not add up to 100", () => {
+    const r = checkMacros(2000, "percent", { protein: 30, carbs: 40, fat: 20 });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("90 %");
+  });
+
+  it("rejects grams that do not match the calorie goal", () => {
+    const r = checkMacros(2000, "grams", { protein: 150, carbs: 150, fat: 67 });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("1.803 kcal");
+  });
+
+  it("accepts matching grams and derives percentages", () => {
+    const r = checkMacros(2000, "grams", { protein: 150, carbs: 200, fat: 67 });
+    expect(r.ok && r.percent).toEqual({ protein: 30, carbs: 39.9, fat: 30.1 });
+  });
+
+  it("rejects negative or missing values", () => {
+    expect(checkMacros(2000, "grams", { protein: -1, carbs: 300, fat: 70 }).ok).toBe(false);
+    expect(checkMacros(2000, "percent", { protein: NaN, carbs: 50, fat: 50 }).ok).toBe(false);
+  });
+
+  it("balances carbs to the remaining calories", () => {
+    expect(balanceCarbs(2000, { protein: 150, carbs: 0, fat: 67 })).toEqual({ protein: 150, carbs: 199, fat: 67 });
+    expect(balanceCarbs(1000, { protein: 200, carbs: 0, fat: 50 })).toBeNull();
+  });
+
+  it("keeps suggested targets valid", () => {
+    const t = suggestTargets({ sex: "female", weightKg: 62, heightCm: 168, age: 28, activityFactor: 1.375, goal: "maintain" });
+    expect(checkMacros(t.kcal, "grams", t).ok).toBe(true);
   });
 });

@@ -4,7 +4,31 @@ import { useActionState, useState } from "react";
 import { saveProfile } from "@/app/actions";
 import { FormMessage, SubmitButton } from "@/components/form-bits";
 import type { Profile } from "@/db/schema";
-import { ACTIVITY_LEVELS, fmt, GOALS, suggestTargets, type Goal, type Sex } from "@/lib/nutrition";
+import {
+  ACTIVITY_LEVELS,
+  balanceCarbs,
+  checkMacros,
+  fmt,
+  gramsFromPercent,
+  GOALS,
+  kcalFromMacros,
+  percentFromGrams,
+  suggestTargets,
+  type Goal,
+  type MacroMode,
+  type Macros,
+  type Sex,
+} from "@/lib/nutrition";
+
+const MACROS = [
+  { key: "protein", label: "Eiweiß" },
+  { key: "carbs", label: "Kohlenh." },
+  { key: "fat", label: "Fett" },
+] as const;
+
+type MacroInputs = Record<keyof Macros, string>;
+
+const toInputs = (m: Macros): MacroInputs => ({ protein: String(m.protein), carbs: String(m.carbs), fat: String(m.fat) });
 
 export function ProfileForm({ name, profile, weightKg }: { name: string; profile: Profile; weightKg: number | null }) {
   const [state, action] = useActionState(saveProfile, undefined);
@@ -14,14 +38,39 @@ export function ProfileForm({ name, profile, weightKg }: { name: string; profile
   const [weight, setWeight] = useState(weightKg ? String(weightKg) : "");
   const [activity, setActivity] = useState(String(profile.activityFactor));
   const [goal, setGoal] = useState<Goal>(profile.goal);
-  const [targets, setTargets] = useState({
-    kcalTarget: String(profile.kcalTarget),
-    proteinTarget: String(profile.proteinTarget),
-    carbsTarget: String(profile.carbsTarget),
-    fatTarget: String(profile.fatTarget),
-  });
+  const [kcal, setKcal] = useState(String(profile.kcalTarget));
+  const [mode, setMode] = useState<MacroMode>(profile.macroMode);
+  const savedGrams = { protein: profile.proteinTarget, carbs: profile.carbsTarget, fat: profile.fatTarget };
+  const [macros, setMacros] = useState<MacroInputs>(
+    profile.macroMode === "percent" && profile.proteinPct !== null
+      ? toInputs({ protein: profile.proteinPct, carbs: profile.carbsPct ?? 0, fat: profile.fatPct ?? 0 })
+      : toInputs(savedGrams),
+  );
 
-  const num = (v: string) => Number(v.replace(",", "."));
+  const num = (v: string) => (v.trim() === "" ? NaN : Number(v.replace(",", ".")));
+  const kcalNum = num(kcal);
+  const values: Macros = { protein: num(macros.protein), carbs: num(macros.carbs), fat: num(macros.fat) };
+  const check = checkMacros(kcalNum, mode, values);
+  const grams = mode === "grams" ? values : gramsFromPercent(kcalNum || 0, values);
+  const percent = mode === "percent" ? values : percentFromGrams(values);
+
+  const switchMode = (next: MacroMode) => {
+    if (next === mode) return;
+    // Convert what is on screen so switching never loses or distorts the targets.
+    if (next === "percent") setMacros(toInputs(percentFromGrams(values)));
+    else setMacros(toInputs(gramsFromPercent(kcalNum || 0, values)));
+    setMode(next);
+  };
+
+  const applySuggestion = (s: { kcal: number; protein: number; carbs: number; fat: number }) => {
+    setKcal(String(s.kcal));
+    setMacros(toInputs(mode === "grams" ? s : percentFromGrams(s)));
+  };
+
+  const balance = () => {
+    const b = balanceCarbs(kcalNum, values);
+    if (b) setMacros(toInputs(b));
+  };
   const canSuggest = sex && num(birthYear) > 1900 && num(height) > 50 && num(weight) > 20;
   const suggestion = canSuggest
     ? suggestTargets({
@@ -90,56 +139,89 @@ export function ProfileForm({ name, profile, weightKg }: { name: string; profile
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-semibold">Tagesziele</h2>
           {suggestion && (
-            <button
-              type="button"
-              className="btn-secondary px-3 py-1.5 text-xs"
-              onClick={() =>
-                setTargets({
-                  kcalTarget: String(suggestion.kcal),
-                  proteinTarget: String(suggestion.protein),
-                  carbsTarget: String(suggestion.carbs),
-                  fatTarget: String(suggestion.fat),
-                })
-              }
-            >
+            <button type="button" className="btn-secondary px-3 py-1.5 text-xs" onClick={() => applySuggestion(suggestion)}>
               Vorschlag übernehmen
             </button>
           )}
         </div>
         {suggestion ? (
           <p className="text-sm muted">
-            Dein Gesamtumsatz liegt bei etwa {fmt(suggestion.tdee)} kcal. Vorschlag: {fmt(suggestion.kcal)} kcal, {suggestion.protein} g Eiweiß,{" "}
-            {suggestion.carbs} g Kohlenhydrate, {suggestion.fat} g Fett.
+            Nach der Mifflin-St-Jeor-Formel liegt dein Gesamtumsatz bei etwa {fmt(suggestion.tdee)} kcal. Vorschlag für dein Ziel:{" "}
+            {fmt(suggestion.kcal)} kcal, {suggestion.protein} g Eiweiß, {suggestion.carbs} g Kohlenhydrate, {suggestion.fat} g Fett.
           </p>
         ) : (
           <p className="text-sm muted">Fülle Geschlecht, Geburtsjahr, Größe und Gewicht aus, dann berechne ich dir einen Vorschlag.</p>
         )}
-        <div className="grid grid-cols-2 gap-3">
-          {(
-            [
-              ["kcalTarget", "Kalorien (kcal)"],
-              ["proteinTarget", "Eiweiß (g)"],
-              ["carbsTarget", "Kohlenhydrate (g)"],
-              ["fatTarget", "Fett (g)"],
-            ] as const
-          ).map(([key, label]) => (
+
+        <div>
+          <label className="label" htmlFor="kcalTarget">Kalorien (kcal)</label>
+          <input className="input tabular-nums" id="kcalTarget" name="kcalTarget" inputMode="numeric" value={kcal} onChange={(e) => setKcal(e.target.value)} required />
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-medium">Makros angeben in</span>
+          <input type="hidden" name="macroMode" value={mode} />
+          <div className="flex rounded-xl border border-zinc-300 p-0.5 dark:border-zinc-700" role="radiogroup" aria-label="Makros angeben in">
+            {(
+              [
+                ["percent", "Prozent"],
+                ["grams", "Gramm"],
+              ] as const
+            ).map(([m, label]) => (
+              <button
+                key={m}
+                type="button"
+                role="radio"
+                aria-checked={mode === m}
+                onClick={() => switchMode(m)}
+                className={`rounded-lg px-3 py-1 text-sm font-medium ${mode === m ? "bg-brand-600 text-white" : ""}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          {MACROS.map(({ key, label }) => (
             <div key={key}>
-              <label className="label" htmlFor={key}>{label}</label>
+              <label className="label" htmlFor={key}>
+                {label} ({mode === "percent" ? "%" : "g"})
+              </label>
               <input
                 className="input tabular-nums"
                 id={key}
                 name={key}
-                inputMode="numeric"
-                value={targets[key]}
-                onChange={(e) => setTargets((t) => ({ ...t, [key]: e.target.value }))}
+                inputMode="decimal"
+                value={macros[key]}
+                onChange={(e) => setMacros((m) => ({ ...m, [key]: e.target.value }))}
                 required
               />
+              <p className="mt-1 text-xs tabular-nums muted">
+                {mode === "percent" ? `= ${Number.isFinite(grams[key]) ? fmt(grams[key]) : "–"} g` : `= ${Number.isFinite(percent[key]) ? fmt(percent[key], 1) : "–"} %`}
+              </p>
             </div>
           ))}
         </div>
+
+        <div
+          className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm ${check.ok ? "bg-brand-50 text-brand-700 dark:bg-brand-700/20 dark:text-brand-100" : "bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-200"}`}
+          aria-live="polite"
+        >
+          <span>
+            {check.ok
+              ? `Passt: ${fmt(kcalFromMacros(check.grams))} kcal aus Makros bei ${fmt(kcalNum)} kcal Ziel.`
+              : check.error}
+          </span>
+          {!check.ok && mode === "grams" && balanceCarbs(kcalNum, values) && (
+            <button type="button" className="btn-secondary shrink-0 px-3 py-1 text-xs" onClick={balance}>
+              Ausgleichen
+            </button>
+          )}
+        </div>
       </div>
       <FormMessage state={state} />
-      <SubmitButton>Speichern</SubmitButton>
+      {check.ok ? <SubmitButton>Speichern</SubmitButton> : <button type="button" className="btn-primary w-full" disabled>Speichern</button>}
     </form>
   );
 }

@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
 import { MICROS } from "@/lib/micros";
 import { fmt, MEALS } from "@/lib/nutrition";
-import { getRecipe, getVisibleFood, isFavorite } from "@/lib/queries";
+import { getOrImportBarcode, getRecipe, getVisibleFood, isFavorite } from "@/lib/queries";
 
 export const metadata = { title: "Lebensmittel" };
 
@@ -14,8 +14,12 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
   const user = await requireUser();
   const { id } = await params;
   const sp = await searchParams;
-  const food = await getVisibleFood(user.id, Number(id));
+  let food = await getVisibleFood(user.id, Number(id));
   if (!food) notFound();
+  // Products cached before vitamins and minerals were stored get them fetched once.
+  if (food.source === "off" && food.barcode && !food.micros) {
+    food = (await getOrImportBarcode(food.barcode).catch(() => null)) ?? food;
+  }
 
   const day = dayOrToday(sp.day);
   const meal = MEALS.find((m) => m.key === sp.meal)?.key ?? "snack";
@@ -23,6 +27,8 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
     isFavorite(user.id, food.id),
     food.source === "recipe" ? getRecipe(user.id, food.id) : null,
   ]);
+
+  const microRows = MICROS.filter((m) => food.micros?.[m.key] !== undefined).map((m) => ({ ...m, value: food.micros![m.key]! }));
 
   const rows: [string, number | null, string][] = [
     ["Energie", food.kcal, "kcal"],
@@ -101,14 +107,6 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
                   </td>
                 </tr>
               ))}
-            {MICROS.filter((m) => food.micros?.[m.key] !== undefined).map((m) => (
-              <tr key={m.key} className="border-t border-zinc-100 dark:border-zinc-800">
-                <td className="py-1.5">{m.label}</td>
-                <td className="py-1.5 text-right tabular-nums">
-                  {fmt(food.micros![m.key]!, 2)} {m.unit}
-                </td>
-              </tr>
-            ))}
           </tbody>
         </table>
         {food.barcode && (
@@ -118,6 +116,36 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
               Open Food Facts
             </a>{" "}
             (ODbL) · Barcode {food.barcode}
+          </p>
+        )}
+      </section>
+
+      <section className="card">
+        <h2 className="mb-1 font-semibold">Vitamine und Mineralstoffe pro 100 g</h2>
+        {microRows.length ? (
+          <>
+            <p className="mb-2 text-xs muted">Prozent vom Tagesbedarf eines Erwachsenen (DGE, gerundet).</p>
+            <table className="w-full text-sm">
+              <tbody>
+                {microRows.map((m) => (
+                  <tr key={m.key} className="border-t border-zinc-100 first:border-0 dark:border-zinc-800">
+                    <td className="py-1.5">{m.label}</td>
+                    <td className="py-1.5 text-right tabular-nums">
+                      {fmt(m.value, m.value < 10 ? 2 : 0)} {m.unit}
+                    </td>
+                    <td className="w-16 py-1.5 text-right tabular-nums muted">{fmt((m.value / m.reference) * 100)} %</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        ) : (
+          <p className="text-sm muted">
+            {food.source === "off"
+              ? "Open Food Facts hat für dieses Produkt keine Angaben zu Vitaminen und Mineralstoffen."
+              : food.source === "recipe"
+                ? "Keine der Zutaten hat Angaben zu Vitaminen und Mineralstoffen."
+                : "Für eigene Lebensmittel sind keine Vitamin- und Mineralstoffangaben hinterlegt."}
           </p>
         )}
       </section>

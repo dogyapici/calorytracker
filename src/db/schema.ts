@@ -1,5 +1,7 @@
 import {
+  customType,
   date,
+  foreignKey,
   jsonb,
   index,
   integer,
@@ -14,9 +16,14 @@ import {
 } from "drizzle-orm/pg-core";
 import type { Micros } from "../lib/micros";
 
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType: () => "bytea",
+});
+
 export const sexEnum = pgEnum("sex", ["male", "female"]);
 export const goalEnum = pgEnum("goal", ["lose", "maintain", "gain"]);
 export const mealEnum = pgEnum("meal", ["breakfast", "lunch", "dinner", "snack"]);
+export const macroModeEnum = pgEnum("macro_mode", ["percent", "grams"]);
 export const foodSourceEnum = pgEnum("food_source", ["off", "custom", "recipe"]);
 
 export const users = pgTable("users", {
@@ -54,6 +61,12 @@ export const profiles = pgTable("profiles", {
   proteinTarget: integer("protein_target").notNull().default(100),
   carbsTarget: integer("carbs_target").notNull().default(250),
   fatTarget: integer("fat_target").notNull().default(67),
+  // Whether the user edits macro targets as shares of calories or as grams. Gram targets above
+  // are always stored and always consistent with kcalTarget; the shares are kept for editing.
+  macroMode: macroModeEnum("macro_mode").notNull().default("grams"),
+  proteinPct: real("protein_pct"),
+  carbsPct: real("carbs_pct"),
+  fatPct: real("fat_pct"),
 });
 
 export const foods = pgTable(
@@ -123,8 +136,31 @@ export const weights = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     day: date("day").notNull(),
     kg: real("kg").notNull(),
+    // Optional body measurements in cm, body fat in percent.
+    waistCm: real("waist_cm"),
+    hipCm: real("hip_cm"),
+    chestCm: real("chest_cm"),
+    armCm: real("arm_cm"),
+    thighCm: real("thigh_cm"),
+    bodyFatPct: real("body_fat_pct"),
   },
   (t) => [primaryKey({ columns: [t.userId, t.day] })],
+);
+
+/** Optional progress photo for a weight entry, stored as a downscaled JPEG. */
+export const weightPhotos = pgTable(
+  "weight_photos",
+  {
+    userId: integer("user_id").notNull(),
+    day: date("day").notNull(),
+    mimeType: text("mime_type").notNull(),
+    data: bytea("data").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.day] }),
+    foreignKey({ columns: [t.userId, t.day], foreignColumns: [weights.userId, weights.day] }).onDelete("cascade"),
+  ],
 );
 
 export const favorites = pgTable(

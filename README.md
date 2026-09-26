@@ -12,8 +12,9 @@ Eine Web-App zum Erfassen von Kalorien und Nährwerten, gedacht für eine kleine
 - **Gespeicherte Mahlzeiten**: eine Mahlzeit aus dem Tagebuch speichern und später mit einem Tipp komplett eintragen.
 - **Weitere Nährwerte**: Ballaststoffe, Zucker, gesättigte Fettsäuren, Salz sowie Vitamine und Mineralstoffe (soweit Open Food Facts sie kennt) mit DGE-Referenzwerten.
 - **Streak**: Tage in Folge mit Einträgen und längste Serie.
-- **Ziele**: Vorschlag nach Mifflin-St Jeor aus Geschlecht, Alter, Größe, Gewicht, Aktivität und Ziel; alle Werte frei anpassbar.
-- **Gewicht** mit Verlauf, **Statistik** über 7, 30 oder 90 Tage.
+- **Ziele**: Vorschlag nach Mifflin-St Jeor aus Geschlecht, Alter, Größe, Gewicht, Aktivität und Ziel. Makroziele wahlweise in Prozent oder Gramm; sie werden immer gegen das Kalorienziel geprüft und lassen sich sonst nicht speichern.
+- **Gewicht** mit Verlauf, optionalen Körpermaßen (Taille, Hüfte, Brust, Oberarm, Oberschenkel, Körperfett) und optionalem Fortschrittsfoto. Fotos werden im Browser verkleinert, ohne Standortdaten in der Datenbank gespeichert und sind nur für die eigene Person abrufbar.
+- **Statistik** über 7, 30 oder 90 Tage.
 - Jede Person sieht nur ihre eigenen Einträge und eigenen Lebensmittel.
 
 ## Technik
