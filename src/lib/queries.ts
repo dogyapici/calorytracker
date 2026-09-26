@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq, gte, ilike, inArray, isNull, lte, max, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { entries, favorites, foods, profiles, recipeIngredients, savedMealItems, savedMeals, weightPhotos, weights, type Food } from "@/db/schema";
+import { entries, favorites, foods, profiles, recipeIngredients, savedMealItems, savedMeals, water, weightPhotos, weights, type Food } from "@/db/schema";
 import { today } from "./dates";
 import { fetchProduct, type OffFood } from "./off";
 import { computeStreak } from "./streak";
@@ -204,4 +204,9 @@ export async function getPhotoVersions(userId: number) {
     .from(weightPhotos)
     .where(eq(weightPhotos.userId, userId));
   return new Map(rows.map((r) => [r.day, r.createdAt.getTime()]));
+}
+
+export async function getWater(userId: number, day: string) {
+  const [row] = await db.select({ ml: water.ml }).from(water).where(and(eq(water.userId, userId), eq(water.day, day)));
+  return row?.ml ?? 0;
 }

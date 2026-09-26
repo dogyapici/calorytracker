@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { Splash, splashScript } from "@/components/splash";
 import { ThemeSync } from "@/components/theme-sync";
 import { DEFAULT_MODE, THEME, themeScript } from "@/lib/theme";
 import "./globals.css";
@@ -35,8 +36,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: splashScript }} />
       </head>
       <body className="min-h-full">
+        <Splash />
         <ThemeSync />
         {children}
       </body>

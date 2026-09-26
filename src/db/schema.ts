@@ -16,6 +16,8 @@ import {
 } from "drizzle-orm/pg-core";
 import type { Micros } from "../lib/micros";
 
+export type MealSplit = Record<"breakfast" | "lunch" | "dinner" | "snack", number>;
+
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   dataType: () => "bytea",
 });
@@ -67,6 +69,9 @@ export const profiles = pgTable("profiles", {
   proteinPct: real("protein_pct"),
   carbsPct: real("carbs_pct"),
   fatPct: real("fat_pct"),
+  // Optional share of the calorie target per meal in percent, summing to 100; null = no meal targets.
+  mealSplit: jsonb("meal_split").$type<MealSplit>(),
+  waterTargetMl: integer("water_target_ml").notNull().default(2000),
 });
 
 export const foods = pgTable(
@@ -143,6 +148,19 @@ export const weights = pgTable(
     armCm: real("arm_cm"),
     thighCm: real("thigh_cm"),
     bodyFatPct: real("body_fat_pct"),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.day] })],
+);
+
+/** Water drunk per user and day, in ml. */
+export const water = pgTable(
+  "water",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    day: date("day").notNull(),
+    ml: integer("ml").notNull().default(0),
   },
   (t) => [primaryKey({ columns: [t.userId, t.day] })],
 );

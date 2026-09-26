@@ -225,3 +225,23 @@ export function balanceCarbs(kcal: number, g: Macros): Macros | null {
   const carbs = Math.round((kcal - g.protein * KCAL_PER_GRAM.protein - g.fat * KCAL_PER_GRAM.fat) / KCAL_PER_GRAM.carbs);
   return carbs < 0 ? null : { ...g, carbs };
 }
+
+// ---------- Kalorienziele pro Mahlzeit ----------
+
+export type MealKey = (typeof MEALS)[number]["key"];
+
+/** Suggested split of the calorie target when meal targets are switched on. */
+export const DEFAULT_MEAL_SPLIT: Record<MealKey, number> = { breakfast: 25, lunch: 35, dinner: 30, snack: 10 };
+
+/** Meal shares must be whole, non-negative percentages that add up to exactly 100. */
+export function checkMealSplit(split: Record<MealKey, number>): { ok: true } | { ok: false; error: string } {
+  const values = Object.values(split);
+  if (values.some((v) => !Number.isInteger(v) || v < 0 || v > 100)) return { ok: false, error: "Bitte gib ganze Prozentwerte zwischen 0 und 100 an." };
+  const sum = values.reduce((a, b) => a + b, 0);
+  if (sum !== 100) return { ok: false, error: `Die Anteile ergeben ${sum} %, es müssen genau 100 % sein.` };
+  return { ok: true };
+}
+
+export function mealTarget(kcalTarget: number, split: Record<MealKey, number> | null, meal: MealKey): number | null {
+  return split ? Math.round((kcalTarget * split[meal]) / 100) : null;
+}

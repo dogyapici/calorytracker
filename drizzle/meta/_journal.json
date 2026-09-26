@@ -22,6 +22,13 @@
       "when": 1790456624893,
       "tag": "0002_goals_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790463276532,
+      "tag": "0003_calendar_water",
+      "breakpoints": true
     }
   ]
 }
