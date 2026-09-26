@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { copyMeal } from "@/app/actions";
 import { NutrientDetails } from "@/components/nutrient-details";
@@ -9,6 +10,9 @@ import { getEntriesForDay, getProfile, getStreak } from "@/lib/queries";
 import { Icon } from "@/components/icons";
 
 import { PendingButton } from "@/components/form-bits";
+import { CollapsibleMeal } from "./_diary/collapsible-meal";
+import { CLOSED_MEALS_COOKIE } from "./_diary/constants";
+import { SwipeToDelete } from "./_diary/swipe-to-delete";
 
 export const metadata = { title: "Tagebuch" };
 
@@ -21,6 +25,7 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
     getEntriesForDay(user.id, day),
     getStreak(user.id),
   ]);
+  const closedMeals = new Set(decodeURIComponent((await cookies()).get(CLOSED_MEALS_COOKIE)?.value ?? "").split(","));
   const total = sumNutrients(dayEntries);
   const isToday = day === today();
   const yesterday = addDays(day, -1);
@@ -77,33 +82,42 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
         const mealKcal = items.reduce((s, e) => s + e.kcal, 0);
         const addHref = `/add?day=${day}&meal=${meal.key}`;
         return (
-          <section key={meal.key} className="card animate-enter p-0">
-            <div className="flex items-baseline justify-between px-card pt-4">
-              <h2 className="text-h3">
+          <CollapsibleMeal
+            key={meal.key}
+            mealKey={meal.key}
+            initialOpen={!closedMeals.has(meal.key)}
+            title={
+              <>
                 <span aria-hidden className="mr-1.5">{meal.emoji}</span>
                 {meal.label}
-              </h2>
-              <span className="text-body font-semibold">
+                {items.length > 0 && <span className="ml-2 text-caption muted">{items.length}</span>}
+              </>
+            }
+            summary={
+              <span className="text-body font-semibold tabular-nums">
                 {fmt(mealKcal)}
                 <span className="ml-0.5 text-caption muted">kcal</span>
               </span>
-            </div>
+            }
+          >
             {items.length > 0 ? (
-              <ul className="mt-1 divide-y divide-border px-card">
+              <ul className="divide-y divide-border px-card">
                 {items.map((e) => (
                   <li key={e.id}>
-                    <Link href={`/entry/${e.id}`} className="-mx-2 flex items-center justify-between gap-3 rounded-chip px-2 py-3 hover:bg-surface-muted">
-                      <div className="min-w-0">
-                        <p className="truncate">{e.name}</p>
-                        <p className="text-caption muted">
-                          {fmt(e.grams)} g · E {fmt(e.protein, 1)} · K {fmt(e.carbs, 1)} · F {fmt(e.fat, 1)}
-                        </p>
-                      </div>
-                      <span className="shrink-0">
-                        {fmt(e.kcal)}
-                        <span className="ml-0.5 text-caption muted">kcal</span>
-                      </span>
-                    </Link>
+                    <SwipeToDelete id={e.id} name={e.name}>
+                      <Link href={`/entry/${e.id}`} draggable={false} className="flex items-center justify-between gap-3 py-3">
+                        <div className="min-w-0">
+                          <p className="truncate">{e.name}</p>
+                          <p className="text-caption muted">
+                            {fmt(e.grams)} g · E {fmt(e.protein, 1)} · K {fmt(e.carbs, 1)} · F {fmt(e.fat, 1)}
+                          </p>
+                        </div>
+                        <span className="shrink-0">
+                          {fmt(e.kcal)}
+                          <span className="ml-0.5 text-caption muted">kcal</span>
+                        </span>
+                      </Link>
+                    </SwipeToDelete>
                   </li>
                 ))}
               </ul>
@@ -128,7 +142,7 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
                 </form>
               )}
             </div>
-          </section>
+          </CollapsibleMeal>
         );
       })}
     </div>

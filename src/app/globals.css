@@ -127,6 +127,8 @@
 
 html {
   @apply text-body;
+  /* Kein Zoomen mit zwei Fingern oder Doppeltippen, die App soll sich wie eine native App anfühlen. */
+  touch-action: pan-x pan-y;
 }
 
 body {

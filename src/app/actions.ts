@@ -172,6 +172,14 @@ export async function deleteEntry(formData: FormData) {
   redirect(`/?day=${deleted?.day ?? dayOrToday(null)}`);
 }
 
+/** Deletes an entry without leaving the diary (swipe to delete). */
+export async function removeEntry(id: number) {
+  const user = await requireUser();
+  if (!Number.isInteger(id)) return;
+  await db.delete(entries).where(and(eq(entries.id, id), eq(entries.userId, user.id)));
+  revalidatePath("/");
+}
+
 export async function copyMeal(formData: FormData) {
   const user = await requireUser();
   const parsed = z
