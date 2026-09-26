@@ -1,6 +1,7 @@
 import { logout } from "@/app/actions";
 import { requireUser } from "@/lib/auth";
 import { getLatestWeight, getProfile } from "@/lib/queries";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { ProfileForm } from "./profile-form";
 
 export const metadata = { title: "Profil & Ziele" };
@@ -19,6 +20,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
         </p>
       )}
       <ProfileForm name={user.name} profile={profile} weightKg={weight?.kg ?? null} />
+      <ThemeSwitcher />
       <div className="card flex items-center justify-between">
         <p className="text-sm muted">Angemeldet als {user.email}</p>
         <form action={logout}>

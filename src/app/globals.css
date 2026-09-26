@@ -1,19 +1,111 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
 
+/*
+ * Tailwind-Dark-Variante folgt der Modus-Wahl aus dem Theme-Umschalter
+ * (data-scheme auf <html>) statt direkt der Systemeinstellung.
+ */
+@custom-variant dark {
+  &:where([data-scheme="dark"], [data-scheme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-scheme]), :root:not([data-scheme]) *) {
+      @slot;
+    }
+  }
+}
+
+/* Alte Markenpalette: bleibt, bis alle Komponenten auf Tokens umgestellt sind. */
 @theme {
   --color-brand-50: #ecfdf5;
   --color-brand-100: #d1fae5;
   --color-brand-500: #10b981;
   --color-brand-600: #059669;
   --color-brand-700: #047857;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-:root {
-  color-scheme: light dark;
+/* Design-Tokens aus DESIGN.md, Werte je Theme in src/styles/tokens.css */
+@theme inline {
+  /* Farben */
+  --color-bg: var(--ds-bg);
+  --color-surface: var(--ds-surface);
+  --color-surface-muted: var(--ds-surface-muted);
+  --color-border: var(--ds-border);
+  --color-text-primary: var(--ds-text-primary);
+  --color-text-secondary: var(--ds-text-secondary);
+  --color-text-tertiary: var(--ds-text-tertiary);
+  --color-primary: var(--ds-primary);
+  --color-primary-hover: var(--ds-primary-hover);
+  --color-primary-soft: var(--ds-primary-soft);
+  --color-on-primary: var(--ds-on-primary);
+  --color-inverse-surface: var(--ds-inverse-surface);
+  --color-inverse-text: var(--ds-inverse-text);
+  --color-accent-calories: var(--ds-accent-calories);
+  --color-macro-protein: var(--ds-macro-protein);
+  --color-macro-carbs: var(--ds-macro-carbs);
+  --color-macro-fat: var(--ds-macro-fat);
+  --color-success: var(--ds-success);
+  --color-warning: var(--ds-warning);
+  --color-danger: var(--ds-danger);
+  --color-hero-surface: var(--ds-hero-surface);
+  --color-hero-text: var(--ds-hero-text);
+  --color-hero-ring: var(--ds-hero-ring);
+  --color-ring-end: var(--ds-ring-end);
+
+  /* Schatten (je Theme und Modus, im Dark Mode immer none) */
+  --shadow-card: var(--ds-shadow-card);
+  --shadow-elevated: var(--ds-shadow-elevated);
+
+  /* Font: Inter aus next/font, System-UI als Fallback */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@theme {
+  /* Typografie: text-display, text-h1 … text-caption */
+  --text-display: 40px;
+  --text-display--line-height: 44px;
+  --text-display--font-weight: 700;
+  --text-display--letter-spacing: -0.02em;
+  --text-h1: 28px;
+  --text-h1--line-height: 34px;
+  --text-h1--font-weight: 700;
+  --text-h1--letter-spacing: -0.01em;
+  --text-h2: 20px;
+  --text-h2--line-height: 26px;
+  --text-h2--font-weight: 600;
+  --text-h3: 17px;
+  --text-h3--line-height: 22px;
+  --text-h3--font-weight: 600;
+  --text-body: 15px;
+  --text-body--line-height: 22px;
+  --text-body--font-weight: 400;
+  --text-label: 13px;
+  --text-label--line-height: 18px;
+  --text-label--font-weight: 500;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-caption--font-weight: 500;
+
+  /*
+   * Radien nach Zweck benannt, weil Tailwinds rounded-sm … rounded-xl noch in
+   * Gebrauch sind: chip = sm 8px, button = md 14px, card = lg 20px, sheet = xl 28px.
+   */
+  --radius-chip: 8px;
+  --radius-button: 14px;
+  --radius-card: 20px;
+  --radius-sheet: 28px;
+
+  /* Abstände: 4px-Grid ist Tailwinds Standard (p-1 = 4px … p-12 = 48px) */
+  --spacing-gutter: 20px;
+  --spacing-card: 20px;
+  --spacing-stack: 16px;
+  --spacing-touch: 44px;
+  --spacing-button: 52px;
 }
 
 body {
+  font-variant-numeric: tabular-nums;
   @apply bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100;
   -webkit-tap-highlight-color: transparent;
 }
