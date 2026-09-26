@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { parseProduct, searchProducts } from "../off";
+import { parseProduct, rankFoods, searchProducts } from "../off";
 
 describe("parseProduct", () => {
   it("prefers German names and reads per-100g nutrients", () => {
@@ -88,5 +88,29 @@ describe("searchProducts", () => {
     const r = await searchProducts("hafer");
     expect(legacyCalls).toBe(2);
     expect(r[0].barcode).toBe("123456789");
+  });
+});
+
+describe("rankFoods", () => {
+  const f = (name: string, brand: string | null = null) => ({ name, brand });
+
+  it("puts products matching every word first and drops unrelated ones", () => {
+    const r = rankFoods("kölln haferflocken", [
+      f("Haferkekse", "Leibniz"),
+      f("Müsli Schoko", "Kölln"),
+      f("Zarte Haferflocken", "Kölln"),
+      f("Cola", "Coca-Cola"),
+    ]);
+    expect(r.map((x) => x.name)).toEqual(["Zarte Haferflocken", "Müsli Schoko"]);
+  });
+
+  it("prefers names starting with the query and ignores umlauts and case", () => {
+    const r = rankFoods("Kase", [f("Frischkäse Natur"), f("Käse gerieben"), f("Käsekuchen mit extra langem Namen")]);
+    expect(r[0].name).toBe("Käse gerieben");
+  });
+
+  it("keeps the order when nothing matches", () => {
+    const list = [f("A"), f("B")];
+    expect(rankFoods("xyz", list)).toEqual(list);
   });
 });

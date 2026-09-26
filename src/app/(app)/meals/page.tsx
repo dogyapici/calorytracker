@@ -25,23 +25,31 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
         </Link>
         <h1 className="text-h1">Meine Mahlzeiten</h1>
       </header>
+      <Link href={`/meals/create?day=${day}&meal=${meal}`} className="btn-primary w-full">
+        <Icon name="add" size={20} /> Neue Mahlzeit
+      </Link>
       {meals.length === 0 ? (
         <p className="card text-sm muted">
-          Noch keine gespeicherten Mahlzeiten. Stell eine Mahlzeit im Tagebuch zusammen und tippe dort auf „Als Mahlzeit speichern“.
+          Noch keine Mahlzeiten. Stell hier eine zusammen oder tippe im Tagebuch bei einer Mahlzeit auf „Als Mahlzeit speichern“.
         </p>
       ) : (
         <ul className="space-y-3">
           {meals.map((m) => (
             <li key={m.id} className="card">
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
+                <Link href={`/meals/${m.id}?day=${day}&meal=${meal}`} className="min-w-0 flex-1">
                   <p className="font-semibold">{m.name}</p>
                   <p className="text-caption muted">{fmt(m.kcal)} kcal · {m.items.map((i) => i.food.name).join(", ")}</p>
+                </Link>
+                <div className="flex shrink-0 gap-2">
+                  <Link href={`/meals/${m.id}?day=${day}&meal=${meal}`} className="btn-secondary px-3 py-1.5 text-xs">
+                    Bearbeiten
+                  </Link>
+                  <form action={deleteSavedMeal}>
+                    <input type="hidden" name="id" value={m.id} />
+                    <PendingButton className="btn-danger px-3 py-1.5 text-xs">Löschen</PendingButton>
+                  </form>
                 </div>
-                <form action={deleteSavedMeal}>
-                  <input type="hidden" name="id" value={m.id} />
-                  <PendingButton className="btn-danger px-2 py-1 text-xs">Löschen</PendingButton>
-                </form>
               </div>
             </li>
           ))}

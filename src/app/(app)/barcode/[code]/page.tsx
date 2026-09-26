@@ -10,7 +10,9 @@ export default async function BarcodePage({ params, searchParams }: PageProps<"/
   await requireUser();
   const { code } = await params;
   const sp = await searchParams;
-  const ctx = `?${new URLSearchParams({ day: dayOrToday(sp.day), meal: typeof sp.meal === "string" ? sp.meal : "snack" })}`;
+  const query = new URLSearchParams({ day: dayOrToday(sp.day), meal: typeof sp.meal === "string" ? sp.meal : "snack" });
+  if (typeof sp.q === "string" && sp.q) query.set("q", sp.q.slice(0, 100));
+  const ctx = `?${query}`;
 
   let foodId: number | undefined;
   let failed = false;

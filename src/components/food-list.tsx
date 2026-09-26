@@ -10,7 +10,6 @@ export type FoodListItem = {
   protein?: number;
   carbs?: number;
   fat?: number;
-  imageUrl?: string | null;
   badge?: string;
 };
 
@@ -25,15 +24,7 @@ export function FoodList({ items }: { items: FoodListItem[] }) {
     <ul className="card divide-y divide-border p-0">
       {items.map((f) => (
         <li key={f.key}>
-          <Link href={f.href} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-muted active:bg-surface-muted">
-            {f.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={f.imageUrl} alt="" className="h-14 w-14 shrink-0 rounded-button bg-surface-muted object-contain p-1" loading="lazy" />
-            ) : (
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-button bg-primary-soft text-h3 text-primary">
-                {f.name.slice(0, 1).toUpperCase()}
-              </div>
-            )}
+          <Link href={f.href} className="flex items-center gap-3 px-card py-3.5 transition-colors hover:bg-surface-muted active:bg-surface-muted">
             <div className="min-w-0 flex-1 space-y-0.5">
               <p className="line-clamp-2 text-body font-medium">{f.name}</p>
               {(f.brand || f.badge) && <p className="truncate text-caption muted">{[f.brand, f.badge].filter(Boolean).join(" · ")}</p>}
