@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bmr, computeRecipe, scaleNutrients, suggestTargets, sumNutrients } from "../nutrition";
+import { bmr, computeRecipe, scaleFood, scaleNutrients, suggestTargets, sumNutrients } from "../nutrition";
 import { addDays, isIsoDay, today } from "../dates";
 import { hashPassword, verifyPassword } from "../password";
 
@@ -77,5 +77,23 @@ describe("computeRecipe", () => {
     const r = computeRecipe([], 4);
     expect(r.per100.kcal).toBe(0);
     expect(r.per100.fiber).toBeNull();
+  });
+});
+
+describe("scaleFood", () => {
+  it("scales optional nutrients and micros, keeping unknowns null", () => {
+    const food = { kcal: 64, protein: 3.4, carbs: 4.8, fat: 3.5, sugar: 4.8, saturatedFat: null, fiber: null, salt: 0.1, micros: { calcium: 120 } };
+    const e = scaleFood(food, 250);
+    expect(e.kcal).toBe(160);
+    expect(e.sugar).toBeCloseTo(12);
+    expect(e.saturatedFat).toBeNull();
+    expect(e.micros).toEqual({ calcium: 300 });
+  });
+
+  it("sums recipe micros per 100 g", () => {
+    const a = { kcal: 100, protein: 0, carbs: 0, fat: 0, sugar: null, saturatedFat: null, fiber: null, salt: null, micros: { iron: 4 } };
+    const b = { ...a, micros: {} };
+    const r = computeRecipe([{ per100: a, grams: 100 }, { per100: b, grams: 100 }], 1);
+    expect(r.per100.micros).toEqual({ iron: 2 });
   });
 });

@@ -1,8 +1,10 @@
 import "server-only";
-import { and, asc, desc, eq, gte, ilike, isNull, lte, max, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, inArray, isNull, lte, max, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { entries, favorites, foods, profiles, recipeIngredients, weights, type Food } from "@/db/schema";
-import type { OffFood } from "./off";
+import { entries, favorites, foods, profiles, recipeIngredients, savedMealItems, savedMeals, weights, type Food } from "@/db/schema";
+import { today } from "./dates";
+import { fetchProduct, type OffFood } from "./off";
+import { computeStreak } from "./streak";
 
 export async function getProfile(userId: number) {
   const [row] = await db.select().from(profiles).where(eq(profiles.userId, userId));
@@ -143,4 +145,54 @@ export async function getRecipe(userId: number, recipeId: number) {
     .where(eq(recipeIngredients.recipeId, recipeId))
     .orderBy(asc(recipeIngredients.position));
   return { recipe, ingredients };
+}
+
+/**
+ * Food for a barcode: from our cache, or fetched from Open Food Facts and cached.
+ * Cached products from before micronutrients were stored are refreshed once.
+ * Returns null if unknown; throws if Open Food Facts is unreachable and nothing is cached.
+ */
+export async function getOrImportBarcode(barcode: string): Promise<Food | null> {
+  const cached = await findFoodByBarcode(barcode);
+  if (cached && (cached.micros || cached.source !== "off")) return cached;
+  try {
+    const product = await fetchProduct(barcode);
+    return product ? await upsertOffFood(product) : cached;
+  } catch (err) {
+    if (cached) return cached;
+    throw err;
+  }
+}
+
+/** Saved meals of a user with their foods, newest first. */
+export async function getSavedMeals(userId: number) {
+  const meals = await db
+    .select()
+    .from(savedMeals)
+    .where(eq(savedMeals.userId, userId))
+    .orderBy(desc(savedMeals.createdAt));
+  if (!meals.length) return [];
+  const items = await db
+    .select({ savedMealId: savedMealItems.savedMealId, grams: savedMealItems.grams, food: foods })
+    .from(savedMealItems)
+    .innerJoin(foods, eq(foods.id, savedMealItems.foodId))
+    .where(inArray(savedMealItems.savedMealId, meals.map((m) => m.id)))
+    .orderBy(asc(savedMealItems.position));
+  return meals.map((m) => {
+    const own = items.filter((i) => i.savedMealId === m.id);
+    return { ...m, items: own, kcal: own.reduce((s, i) => s + (i.food.kcal * i.grams) / 100, 0) };
+  });
+}
+
+export async function getStreak(userId: number) {
+  const rows = await db
+    .selectDistinct({ day: entries.day })
+    .from(entries)
+    .where(eq(entries.userId, userId))
+    .orderBy(desc(entries.day))
+    .limit(1000);
+  return computeStreak(
+    rows.map((r) => r.day),
+    today(),
+  );
 }

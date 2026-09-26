@@ -45,3 +45,14 @@ describe("parseProduct", () => {
     expect(parseProduct({ code: "123456", product_name: "X", nutriments: { "energy-kcal_100g": 5000 } })).toBeNull();
   });
 });
+
+describe("micronutrients", () => {
+  it("converts Open Food Facts grams into mg and µg", () => {
+    const food = parseProduct({
+      code: "4008452011006",
+      product_name: "Vollmilch",
+      nutriments: { "energy-kcal_100g": 64, "calcium_100g": 0.12, "vitamin-b12_100g": 0.0000004, "vitamin-c_100g": "0" },
+    });
+    expect(food?.micros).toEqual({ calcium: 120, vitaminB12: 0.4, vitaminC: 0 });
+  });
+});

@@ -1,5 +1,6 @@
 import {
   date,
+  jsonb,
   index,
   integer,
   pgEnum,
@@ -11,6 +12,7 @@ import {
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import type { Micros } from "../lib/micros";
 
 export const sexEnum = pgEnum("sex", ["male", "female"]);
 export const goalEnum = pgEnum("goal", ["lose", "maintain", "gain"]);
@@ -76,6 +78,8 @@ export const foods = pgTable(
     servingGrams: real("serving_grams"),
     servingLabel: text("serving_label"),
     imageUrl: text("image_url"),
+    // Vitamins and minerals per 100 g, see src/lib/micros.ts for keys and units.
+    micros: jsonb("micros").$type<Micros>(),
     // Recipes only: how many portions the recipe makes, and the weight after cooking if the cook weighed it.
     recipeServings: integer("recipe_servings"),
     recipeCookedGrams: real("recipe_cooked_grams"),
@@ -101,6 +105,11 @@ export const entries = pgTable(
     protein: real("protein").notNull(),
     carbs: real("carbs").notNull(),
     fat: real("fat").notNull(),
+    sugar: real("sugar"),
+    saturatedFat: real("saturated_fat"),
+    fiber: real("fiber"),
+    salt: real("salt"),
+    micros: jsonb("micros").$type<Micros>(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("entries_user_day_idx").on(t.userId, t.day)],
@@ -145,6 +154,36 @@ export const recipeIngredients = pgTable(
     position: integer("position").notNull().default(0),
   },
   (t) => [index("recipe_ingredients_recipe_idx").on(t.recipeId)],
+);
+
+/** A saved combination of foods (e.g. "Mein Frühstück") that can be logged in one tap. */
+export const savedMeals = pgTable(
+  "saved_meals",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("saved_meals_user_idx").on(t.userId)],
+);
+
+export const savedMealItems = pgTable(
+  "saved_meal_items",
+  {
+    id: serial("id").primaryKey(),
+    savedMealId: integer("saved_meal_id")
+      .notNull()
+      .references(() => savedMeals.id, { onDelete: "cascade" }),
+    foodId: integer("food_id")
+      .notNull()
+      .references(() => foods.id, { onDelete: "cascade" }),
+    grams: real("grams").notNull(),
+    position: integer("position").notNull().default(0),
+  },
+  (t) => [index("saved_meal_items_meal_idx").on(t.savedMealId)],
 );
 
 export type Food = typeof foods.$inferSelect;

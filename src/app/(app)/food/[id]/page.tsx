@@ -4,6 +4,7 @@ import { addEntry, deleteCustomFood, toggleFavorite } from "@/app/actions";
 import { AmountForm } from "@/components/amount-form";
 import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
+import { MICROS } from "@/lib/micros";
 import { fmt, MEALS } from "@/lib/nutrition";
 import { getRecipe, getVisibleFood, isFavorite } from "@/lib/queries";
 
@@ -100,6 +101,14 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
                   </td>
                 </tr>
               ))}
+            {MICROS.filter((m) => food.micros?.[m.key] !== undefined).map((m) => (
+              <tr key={m.key} className="border-t border-zinc-100 dark:border-zinc-800">
+                <td className="py-1.5">{m.label}</td>
+                <td className="py-1.5 text-right tabular-nums">
+                  {fmt(food.micros![m.key]!, 2)} {m.unit}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
         {food.barcode && (

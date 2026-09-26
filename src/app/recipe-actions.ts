@@ -9,8 +9,8 @@ import { foods, recipeIngredients, type Food } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
 import { computeRecipe } from "@/lib/nutrition";
-import { fetchProduct, searchProducts } from "@/lib/off";
-import { findFoodByBarcode, searchLocalFoods, upsertOffFood } from "@/lib/queries";
+import { searchProducts } from "@/lib/off";
+import { getOrImportBarcode, searchLocalFoods } from "@/lib/queries";
 import type { FormState } from "./actions";
 
 /** What the recipe editor needs to know about an ingredient candidate. */
@@ -72,10 +72,8 @@ export async function searchIngredients(query: string): Promise<{ items: Ingredi
 export async function importBarcode(barcode: string): Promise<IngredientOption | null> {
   await requireUser();
   if (!/^\d{4,14}$/.test(barcode)) return null;
-  const existing = await findFoodByBarcode(barcode);
-  if (existing) return toOption(existing);
-  const product = await fetchProduct(barcode).catch(() => null);
-  return product ? toOption(await upsertOffFood(product)) : null;
+  const food = await getOrImportBarcode(barcode).catch(() => null);
+  return food ? toOption(food) : null;
 }
 
 const recipeSchema = z.object({

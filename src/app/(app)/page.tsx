@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { copyMeal } from "@/app/actions";
+import { NutrientDetails } from "@/components/nutrient-details";
 import { CalorieRing, MacroRow } from "@/components/progress";
 import { requireUser } from "@/lib/auth";
 import { addDays, dayOrToday, formatDay, today } from "@/lib/dates";
 import { fmt, MEALS, sumNutrients } from "@/lib/nutrition";
-import { getEntriesForDay, getProfile } from "@/lib/queries";
+import { getEntriesForDay, getProfile, getStreak } from "@/lib/queries";
 
 export const metadata = { title: "Tagebuch" };
 
@@ -12,7 +13,11 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
   const { day: dayParam } = await searchParams;
   const day = dayOrToday(dayParam);
-  const [profile, dayEntries] = await Promise.all([getProfile(user.id), getEntriesForDay(user.id, day)]);
+  const [profile, dayEntries, streak] = await Promise.all([
+    getProfile(user.id),
+    getEntriesForDay(user.id, day),
+    getStreak(user.id),
+  ]);
   const total = sumNutrients(dayEntries);
   const isToday = day === today();
   const yesterday = addDays(day, -1);
@@ -38,6 +43,15 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
         </Link>
       </header>
 
+      {isToday && streak.current > 0 && (
+        <p className="flex items-center justify-center gap-2 text-sm">
+          <span className="rounded-full bg-orange-100 px-3 py-1 font-semibold text-orange-700 dark:bg-orange-500/20 dark:text-orange-300">
+            🔥 {streak.current} {streak.current === 1 ? "Tag" : "Tage"} in Folge
+          </span>
+          {!streak.loggedToday && <span className="muted">Trag heute etwas ein, um sie zu halten.</span>}
+        </p>
+      )}
+
       <section className="card flex items-center gap-5">
         <CalorieRing eaten={total.kcal} target={profile.kcalTarget} />
         <div className="min-w-0 flex-1 space-y-3">
@@ -50,6 +64,8 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
           <MacroRow label="Fett" value={total.fat} target={profile.fatTarget} color="bg-rose-500" />
         </div>
       </section>
+
+      <NutrientDetails entries={dayEntries} kcalTarget={profile.kcalTarget} />
 
       {MEALS.map((meal) => {
         const items = dayEntries.filter((e) => e.meal === meal.key);
@@ -82,6 +98,11 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
               <Link href={addHref} className="btn flex-1 justify-start text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-700/20">
                 + Hinzufügen
               </Link>
+              {items.length > 0 && (
+                <Link href={`/meals/new?day=${day}&meal=${meal.key}`} className="btn text-xs muted hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                  Als Mahlzeit speichern
+                </Link>
+              )}
               {items.length === 0 && (
                 <form action={copyMeal}>
                   <input type="hidden" name="from" value={yesterday} />

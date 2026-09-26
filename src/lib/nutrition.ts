@@ -1,3 +1,5 @@
+import { scaleMicros, sumMicros, type Micros } from "./micros";
+
 export type Sex = "male" | "female";
 export type Goal = "lose" | "maintain" | "gain";
 
@@ -101,7 +103,7 @@ const OPTIONAL_KEYS = ["sugar", "saturatedFat", "fiber", "salt"] as const;
  * is reported only if at least one ingredient knows it.
  */
 export function computeRecipe(
-  ingredients: { per100: FullNutrients; grams: number }[],
+  ingredients: { per100: FullNutrients & { micros?: Micros | null }; grams: number }[],
   servings: number,
   cookedGrams?: number | null,
 ) {
@@ -125,10 +127,29 @@ export function computeRecipe(
     if (known.length) per100[key] = known.reduce((s, i) => s + (i.per100[key] as number) * (i.grams / 100), 0) * f;
   }
 
+  const micros = scaleMicros(
+    sumMicros(ingredients.map((i) => scaleMicros(i.per100.micros, i.grams / 100))),
+    f,
+  );
+
   return {
-    per100,
+    per100: { ...per100, micros },
     total,
     totalGrams,
     servingGrams: servings > 0 ? totalGrams / servings : totalGrams,
+  };
+}
+
+/** Everything an entry stores, scaled from a food's per-100 g values to `grams`. */
+export function scaleFood(food: FullNutrients & { micros?: Micros | null }, grams: number) {
+  const f = grams / 100;
+  const opt = (v: number | null) => (v === null ? null : v * f);
+  return {
+    ...scaleNutrients(food, grams),
+    sugar: opt(food.sugar),
+    saturatedFat: opt(food.saturatedFat),
+    fiber: opt(food.fiber),
+    salt: opt(food.salt),
+    micros: scaleMicros(food.micros, f),
   };
 }

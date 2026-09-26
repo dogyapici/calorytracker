@@ -8,6 +8,10 @@ Eine Web-App zum Erfassen von Kalorien und Nährwerten, gedacht für eine kleine
 - **Lebensmittelsuche** in [Open Food Facts](https://world.openfoodfacts.org) (freie Datenbank, ODbL) plus bereits verwendete Lebensmittel.
 - **Barcode-Scan** mit der Handykamera (native `BarcodeDetector`, auf iPhone per ZXing-WebAssembly) oder Barcode eintippen.
 - **Eigene Lebensmittel** mit Portionsgröße, **Favoriten** und **zuletzt gegessen**.
+- **Rezepte** aus mehreren Zutaten (Suche oder Barcode), mit Portionen und optionalem Gewicht nach dem Kochen.
+- **Gespeicherte Mahlzeiten**: eine Mahlzeit aus dem Tagebuch speichern und später mit einem Tipp komplett eintragen.
+- **Weitere Nährwerte**: Ballaststoffe, Zucker, gesättigte Fettsäuren, Salz sowie Vitamine und Mineralstoffe (soweit Open Food Facts sie kennt) mit DGE-Referenzwerten.
+- **Streak**: Tage in Folge mit Einträgen und längste Serie.
 - **Ziele**: Vorschlag nach Mifflin-St Jeor aus Geschlecht, Alter, Größe, Gewicht, Aktivität und Ziel; alle Werte frei anpassbar.
 - **Gewicht** mit Verlauf, **Statistik** über 7, 30 oder 90 Tage.
 - Jede Person sieht nur ihre eigenen Einträge und eigenen Lebensmittel.
