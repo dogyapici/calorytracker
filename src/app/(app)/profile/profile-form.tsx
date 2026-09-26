@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { saveProfile } from "@/app/actions";
 import { FormMessage, SubmitButton } from "@/components/form-bits";
 import type { Profile } from "@/db/schema";
+import { ProfileSection } from "@/components/profile-section";
 import {
   ACTIVITY_LEVELS,
   balanceCarbs,
@@ -30,7 +31,7 @@ type MacroInputs = Record<keyof Macros, string>;
 
 const toInputs = (m: Macros): MacroInputs => ({ protein: String(m.protein), carbs: String(m.carbs), fat: String(m.fat) });
 
-export function ProfileForm({ name, profile, weightKg }: { name: string; profile: Profile; weightKg: number | null }) {
+export function ProfileForm({ name, profile, weightKg, open }: { name: string; profile: Profile; weightKg: number | null; open: boolean }) {
   const [state, action] = useActionState(saveProfile, undefined);
   const [sex, setSex] = useState<string>(profile.sex ?? "");
   const [birthYear, setBirthYear] = useState(profile.birthYear ? String(profile.birthYear) : "");
@@ -83,10 +84,28 @@ export function ProfileForm({ name, profile, weightKg }: { name: string; profile
       })
     : null;
 
+  const aboutSummary =
+    [
+      sex === "female" ? "weiblich" : sex === "male" ? "männlich" : null,
+      num(birthYear) > 1900 ? `${new Date().getFullYear() - num(birthYear)} Jahre` : null,
+      num(height) > 0 ? `${fmt(num(height))} cm` : null,
+      num(weight) > 0 ? `${fmt(num(weight), 1)} kg` : null,
+    ]
+      .filter(Boolean)
+      .join(" · ") || "Noch nicht ausgefüllt";
+  const goalsSummary = check.ok
+    ? `${fmt(kcalNum)} kcal · E ${fmt(check.grams.protein)} g · K ${fmt(check.grams.carbs)} g · F ${fmt(check.grams.fat)} g`
+    : "Bitte prüfen";
+  const save = (
+    <>
+      <FormMessage state={state} />
+      {check.ok ? <SubmitButton>Speichern</SubmitButton> : <button type="button" className="btn-primary w-full" disabled>Speichern</button>}
+    </>
+  );
+
   return (
     <form action={action} className="space-y-4">
-      <div className="card space-y-3">
-        <h2 className="text-h3">Über dich</h2>
+      <ProfileSection id="about" icon="profile" title="Über dich" summary={aboutSummary} open={open}>
         <div>
           <label className="label" htmlFor="name">Name</label>
           <input className="input" id="name" name="name" defaultValue={name} required />
@@ -133,11 +152,12 @@ export function ProfileForm({ name, profile, weightKg }: { name: string; profile
             ))}
           </select>
         </div>
-      </div>
+        {save}
+      </ProfileSection>
 
-      <div className="card space-y-3">
+      <ProfileSection id="goals" icon="target" title="Tagesziele" summary={goalsSummary} open={open}>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-h3">Tagesziele</h2>
+          <p className="font-medium">Kalorien & Makros</p>
           {suggestion && (
             <button type="button" className="btn-secondary px-3 py-1.5 text-xs" onClick={() => applySuggestion(suggestion)}>
               Vorschlag übernehmen
@@ -219,9 +239,8 @@ export function ProfileForm({ name, profile, weightKg }: { name: string; profile
             </button>
           )}
         </div>
-      </div>
-      <FormMessage state={state} />
-      {check.ok ? <SubmitButton>Speichern</SubmitButton> : <button type="button" className="btn-primary w-full" disabled>Speichern</button>}
+        {save}
+      </ProfileSection>
     </form>
   );
 }

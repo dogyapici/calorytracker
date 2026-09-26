@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { ProfileSection } from "@/components/profile-section";
 import { MODES, readMode, saveMode, subscribeMode } from "@/lib/theme";
 
 // Hell / Dunkel / System, gespeichert nur in diesem Browser.
@@ -10,8 +11,7 @@ export function ThemeSwitcher() {
   const mode = useSyncExternalStore(subscribeMode, readMode, () => null);
 
   return (
-    <section className="card space-y-3">
-      <h2 className="text-h3">Darstellung</h2>
+    <ProfileSection id="theme" icon="palette" title="Darstellung" summary={MODES.find((m) => m.key === mode)?.label ?? "\u00a0"}>
       <div className="grid grid-cols-3 gap-1 rounded-button bg-surface-muted p-1" role="radiogroup" aria-label="Darstellung">
         {MODES.map((m) => (
           <button
@@ -28,6 +28,6 @@ export function ThemeSwitcher() {
           </button>
         ))}
       </div>
-    </section>
+    </ProfileSection>
   );
 }

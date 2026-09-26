@@ -230,7 +230,7 @@ export function balanceCarbs(kcal: number, g: Macros): Macros | null {
 
 export type MealKey = (typeof MEALS)[number]["key"];
 
-/** Suggested split of the calorie target when meal targets are switched on. */
+/** Split of the calorie target used until the user sets their own. */
 export const DEFAULT_MEAL_SPLIT: Record<MealKey, number> = { breakfast: 25, lunch: 35, dinner: 30, snack: 10 };
 
 /** Meal shares must be whole, non-negative percentages that add up to exactly 100. */
@@ -242,6 +242,6 @@ export function checkMealSplit(split: Record<MealKey, number>): { ok: true } | {
   return { ok: true };
 }
 
-export function mealTarget(kcalTarget: number, split: Record<MealKey, number> | null, meal: MealKey): number | null {
-  return split ? Math.round((kcalTarget * split[meal]) / 100) : null;
+export function mealTarget(kcalTarget: number, split: Record<MealKey, number> | null, meal: MealKey): number {
+  return Math.round((kcalTarget * (split ?? DEFAULT_MEAL_SPLIT)[meal]) / 100);
 }

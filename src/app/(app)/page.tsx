@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { copyMeal } from "@/app/actions";
 import { NutrientDetails } from "@/components/nutrient-details";
-import { CalorieRing, MacroRow, MiniRing } from "@/components/progress";
+import { CalorieRing, MacroRow, MealRing } from "@/components/progress";
 import { requireUser } from "@/lib/auth";
 import { addDays, dayOrToday, formatDay, today } from "@/lib/dates";
 import { fmt, MEALS, mealTarget, sumNutrients } from "@/lib/nutrition";
@@ -80,8 +80,6 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
         </div>
       </section>
 
-      <WaterTracker day={day} ml={waterMl} targetMl={profile.waterTargetMl} />
-
       <NutrientDetails entries={dayEntries} kcalTarget={profile.kcalTarget} />
 
       {MEALS.map((meal) => {
@@ -95,19 +93,21 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
             mealKey={meal.key}
             initialOpen={!closedMeals.has(meal.key)}
             title={
-              <>
-                <span aria-hidden className="mr-1.5">{meal.emoji}</span>
-                {meal.label}
-                {items.length > 0 && <span className="ml-2 text-caption muted">{items.length}</span>}
-              </>
+              <span className="flex items-center gap-3">
+                <MealRing emoji={meal.emoji} value={mealKcal} target={target} />
+                <span className="min-w-0">
+                  <span className="block">{meal.label}</span>
+                  <span className="block text-caption font-normal tabular-nums muted">
+                    {mealKcal > target ? `${fmt(mealKcal - target)} kcal über Ziel` : `noch ${fmt(target - mealKcal)} kcal`}
+                    {items.length > 0 && ` · ${items.length} ${items.length === 1 ? "Eintrag" : "Einträge"}`}
+                  </span>
+                </span>
+              </span>
             }
             summary={
-              <span className="flex items-center gap-2">
-                <span className="text-right text-body font-semibold tabular-nums">
-                  {fmt(mealKcal)}
-                  <span className="ml-0.5 text-caption muted">{target ? `/ ${fmt(target)} kcal` : "kcal"}</span>
-                </span>
-                {target !== null && <MiniRing value={mealKcal} target={target} />}
+              <span className="text-right tabular-nums">
+                <span className="block text-body font-semibold">{fmt(mealKcal)}</span>
+                <span className="block text-caption font-normal muted">/ {fmt(target)} kcal</span>
               </span>
             }
           >
@@ -156,6 +156,8 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
           </CollapsibleMeal>
         );
       })}
+
+      <WaterTracker day={day} ml={waterMl} targetMl={profile.waterTargetMl} />
     </div>
   );
 }

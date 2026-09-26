@@ -147,6 +147,7 @@ describe("meal split", () => {
     expect(checkMealSplit({ breakfast: 30, lunch: 30, dinner: 30, snack: 5 })).toEqual({ ok: false, error: "Die Anteile ergeben 95 %, es müssen genau 100 % sein." });
     expect(checkMealSplit({ breakfast: 25.5, lunch: 34.5, dinner: 30, snack: 10 }).ok).toBe(false);
     expect(mealTarget(2000, DEFAULT_MEAL_SPLIT, "lunch")).toBe(700);
-    expect(mealTarget(2000, null, "lunch")).toBeNull();
+    expect(mealTarget(2000, null, "lunch")).toBe(700);
+    expect(mealTarget(2000, { breakfast: 20, lunch: 40, dinner: 30, snack: 10 }, "lunch")).toBe(800);
   });
 });
