@@ -95,9 +95,14 @@
   --spacing-button: 52px;
 
   /* Motion: Ringe und Balken wachsen beim Laden von 0 auf den Wert (600ms) */
-  --animate-ring: ring-in 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  --animate-grow: grow-in 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-ring: ring-in 600ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  --animate-grow: grow-in 600ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
   --animate-enter: enter 200ms ease-out both;
+  --animate-page: page-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  --animate-fade: fade-in 180ms ease-out both;
+  --animate-day-next: day-next 240ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  --animate-day-prev: day-prev 240ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  --animate-pop: pop-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1.2) both;
 
   @keyframes ring-in {
     from {
@@ -115,13 +120,52 @@
       transform: translateY(4px);
     }
   }
+  @keyframes page-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  @keyframes day-next {
+    from {
+      opacity: 0;
+      transform: translateX(48px);
+    }
+  }
+  @keyframes day-prev {
+    from {
+      opacity: 0;
+      transform: translateX(-48px);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-ring,
   .animate-grow,
-  .animate-enter {
+  .animate-enter,
+  .animate-page,
+  .animate-fade,
+  .animate-pop,
+  .animate-day-next,
+  .animate-day-prev {
     animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -169,6 +213,11 @@ body {
 
 @utility btn-danger {
   @apply btn text-danger hover:bg-danger/10;
+}
+
+/* Tippbare Flächen (Listenzeilen, Kacheln): drücken sich beim Antippen leicht ein. */
+@utility pressable {
+  @apply transition duration-150 ease-out active:scale-[0.98] motion-reduce:transform-none;
 }
 
 @utility muted {

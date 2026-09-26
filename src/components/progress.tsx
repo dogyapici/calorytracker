@@ -17,7 +17,7 @@ export function ProgressBar({
   const over = overIsBad && max > 0 && value > max;
   return (
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
-      <div className={`h-full origin-left animate-grow rounded-full ${over ? "bg-warning" : color}`} style={{ width: `${pct}%` }} />
+      <div className={`h-full origin-left animate-grow rounded-full transition-[width,background-color] duration-500 ease-out ${over ? "bg-warning" : color}`} style={{ width: `${pct}%` }} />
     </div>
   );
 }
@@ -51,7 +51,7 @@ export function CalorieRing({ eaten, target }: { eaten: number; target: number }
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - pct)}
-          className={`animate-ring ${over ? "stroke-warning" : "stroke-[url(#calorie-ring)]"}`}
+          className={`animate-ring transition-[stroke-dashoffset,stroke] duration-500 ease-out ${over ? "stroke-warning" : "stroke-[url(#calorie-ring)]"}`}
           style={{ ["--ring-from" as string]: c }}
         />
       </svg>
@@ -98,7 +98,7 @@ export function MealRing({ emoji, value, target, size = 52 }: { emoji: string; v
             strokeLinecap="round"
             strokeDasharray={c}
             strokeDashoffset={c * (1 - pct)}
-            className={`animate-ring ${over ? "stroke-warning" : "stroke-accent-calories"}`}
+            className={`animate-ring transition-[stroke-dashoffset,stroke] duration-500 ease-out ${over ? "stroke-warning" : "stroke-accent-calories"}`}
             style={{ ["--ring-from" as string]: c }}
           />
         )}
