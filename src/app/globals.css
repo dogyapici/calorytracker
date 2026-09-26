@@ -236,3 +236,23 @@ body {
     stroke-dashoffset: calc(var(--ring-len) * 0.22);
   }
 }
+
+/* Wassertracker: die Welle läuft seitlich, der Füllstand gleitet sanft. */
+.water-level {
+  transition: transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.water-wave {
+  animation: water-wave 3.2s linear infinite;
+}
+.water-wave-back {
+  animation: water-wave 5s linear infinite reverse;
+}
+@keyframes water-wave {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .water-level { transition: none; }
+  .water-wave,
+  .water-wave-back { animation: none; }
+}

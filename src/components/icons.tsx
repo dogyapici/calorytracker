@@ -6,6 +6,10 @@ import {
   ChevronLeft,
   ChevronRight,
   GlassWater,
+  LogOut,
+  Palette,
+  Target,
+  UtensilsCrossed,
   Minus,
   NotebookText,
   Plus,
@@ -36,6 +40,10 @@ const ICONS = {
   stats: ChartNoAxesColumn,
   weight: Scale,
   profile: UserRound,
+  target: Target,
+  meals: UtensilsCrossed,
+  palette: Palette,
+  logout: LogOut,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

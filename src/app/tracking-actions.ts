@@ -29,18 +29,14 @@ export async function saveTrackingGoals(_: FormState, formData: FormData): Promi
   const waterTargetMl = z.coerce.number().int().min(500, "Das Wasserziel muss mindestens 500 ml sein.").max(6000, "Das Wasserziel darf höchstens 6.000 ml sein.").safeParse(formData.get("waterTargetMl"));
   if (!waterTargetMl.success) return { error: waterTargetMl.error.issues[0].message };
 
-  let mealSplit: Record<MealKey, number> | null = null;
-  if (formData.get("mealTargets") === "on") {
-    const split = {} as Record<MealKey, number>;
-    for (const m of MEALS) {
-      const v = percent.safeParse(formData.get(`split_${m.key}`));
-      if (!v.success) return { error: "Bitte gib für jede Mahlzeit einen Anteil in Prozent an." };
-      split[m.key] = v.data;
-    }
-    const check = checkMealSplit(split);
-    if (!check.ok) return { error: check.error };
-    mealSplit = split;
+  const mealSplit = {} as Record<MealKey, number>;
+  for (const m of MEALS) {
+    const v = percent.safeParse(formData.get(`split_${m.key}`));
+    if (!v.success) return { error: "Bitte gib für jede Mahlzeit einen Anteil in Prozent an." };
+    mealSplit[m.key] = v.data;
   }
+  const check = checkMealSplit(mealSplit);
+  if (!check.ok) return { error: check.error };
 
   const values = { mealSplit, waterTargetMl: waterTargetMl.data };
   await db.insert(profiles).values({ userId: user.id, ...values }).onConflictDoUpdate({ target: profiles.userId, set: values });

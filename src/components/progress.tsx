@@ -77,28 +77,35 @@ export function MacroRow({ label, value, target, color }: { label: string; value
   );
 }
 
-// Kleiner Ring für das Kalorienziel einer Mahlzeit.
-export function MiniRing({ value, target, size = 30 }: { value: number; target: number; size?: number }) {
-  const stroke = 4;
+// Ring um das Emoji einer Mahlzeit: zeigt, wie viel vom Mahlzeitziel gegessen ist.
+export function MealRing({ emoji, value, target, size = 52 }: { emoji: string; value: number; target: number; size?: number }) {
+  const stroke = 4.5;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = target > 0 ? Math.min(1, value / target) : 0;
-  const over = target > 0 && value > target;
+  const over = target > 0 && value > target * 1.1;
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="shrink-0 -rotate-90" aria-hidden>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-surface-muted" />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill="none"
-        strokeWidth={stroke}
-        strokeLinecap="round"
-        strokeDasharray={c}
-        strokeDashoffset={c * (1 - pct)}
-        className={`animate-ring ${over ? "stroke-warning" : "stroke-accent-calories"}`}
-        style={{ ["--ring-from" as string]: c }}
-      />
-    </svg>
+    <span className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
+      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="absolute inset-0 -rotate-90" aria-hidden>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-surface-muted" />
+        {pct > 0 && (
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={c}
+            strokeDashoffset={c * (1 - pct)}
+            className={`animate-ring ${over ? "stroke-warning" : "stroke-accent-calories"}`}
+            style={{ ["--ring-from" as string]: c }}
+          />
+        )}
+      </svg>
+      <span aria-hidden className="text-[26px] leading-none">
+        {emoji}
+      </span>
+    </span>
   );
 }

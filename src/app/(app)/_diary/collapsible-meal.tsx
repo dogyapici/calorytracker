@@ -35,7 +35,7 @@ export function CollapsibleMeal({
   return (
     <section className="card animate-enter p-0">
       <h2 className="text-h3">
-        <button type="button" onClick={toggle} aria-expanded={open} aria-controls={id} className="flex w-full items-center gap-2 px-card py-4 text-left">
+        <button type="button" onClick={toggle} aria-expanded={open} aria-controls={id} className="flex w-full items-center gap-3 px-card py-3.5 text-left">
           <span className="flex-1">{title}</span>
           {summary}
           <Icon name="expand" size={20} className={`shrink-0 text-text-tertiary transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
