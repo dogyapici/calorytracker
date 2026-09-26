@@ -9,6 +9,8 @@ import { fmt, MEALS } from "@/lib/nutrition";
 import { getOrImportBarcode, getRecipe, getVisibleFood, isFavorite } from "@/lib/queries";
 import { Icon } from "@/components/icons";
 
+import { PendingButton } from "@/components/form-bits";
+
 export const metadata = { title: "Lebensmittel" };
 
 export default async function FoodPage({ params, searchParams }: PageProps<"/food/[id]">) {
@@ -54,9 +56,9 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
         </div>
         <form action={toggleFavorite}>
           <input type="hidden" name="foodId" value={food.id} />
-          <button className={`btn px-3 text-xl ${favorite ? "text-macro-carbs" : "text-text-tertiary"}`} aria-label={favorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"}>
+          <PendingButton className={`btn px-3 text-xl ${favorite ? "text-macro-carbs" : "text-text-tertiary"}`} aria-label={favorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"}>
             <Icon name="star" filled={favorite} />
-          </button>
+          </PendingButton>
         </form>
       </header>
 
@@ -154,7 +156,7 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
       {food.ownerId === user.id && food.source === "custom" && (
         <form action={deleteCustomFood}>
           <input type="hidden" name="foodId" value={food.id} />
-          <button className="btn-danger w-full">Eigenes Lebensmittel löschen</button>
+          <PendingButton className="btn-danger w-full">Eigenes Lebensmittel löschen</PendingButton>
         </form>
       )}
     </div>

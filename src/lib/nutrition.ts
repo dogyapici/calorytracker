@@ -4,10 +4,10 @@ export type Sex = "male" | "female";
 export type Goal = "lose" | "maintain" | "gain";
 
 export const MEALS = [
-  { key: "breakfast", label: "Frühstück" },
-  { key: "lunch", label: "Mittagessen" },
-  { key: "dinner", label: "Abendessen" },
-  { key: "snack", label: "Snacks" },
+  { key: "breakfast", label: "Frühstück", emoji: "🥣" },
+  { key: "lunch", label: "Mittagessen", emoji: "🥗" },
+  { key: "dinner", label: "Abendessen", emoji: "🍝" },
+  { key: "snack", label: "Snacks", emoji: "🍎" },
 ] as const;
 
 export const ACTIVITY_LEVELS = [

@@ -9,6 +9,8 @@ import { requireUser } from "@/lib/auth";
 import { formatDay } from "@/lib/dates";
 import { Icon } from "@/components/icons";
 
+import { PendingButton } from "@/components/form-bits";
+
 export const metadata = { title: "Eintrag bearbeiten" };
 
 export default async function EntryPage({ params }: PageProps<"/entry/[id]">) {
@@ -45,7 +47,7 @@ export default async function EntryPage({ params }: PageProps<"/entry/[id]">) {
       />
       <form action={deleteEntry}>
         <input type="hidden" name="id" value={entry.id} />
-        <button className="btn-danger w-full">Eintrag löschen</button>
+        <PendingButton className="btn-danger w-full">Eintrag löschen</PendingButton>
       </form>
     </div>
   );

@@ -8,6 +8,8 @@ import { MEALS } from "@/lib/nutrition";
 import { getRecipe } from "@/lib/queries";
 import { Icon } from "@/components/icons";
 
+import { PendingButton } from "@/components/form-bits";
+
 export const metadata = { title: "Rezept bearbeiten" };
 
 export default async function EditRecipePage({ params, searchParams }: PageProps<"/recipes/[id]">) {
@@ -47,7 +49,7 @@ export default async function EditRecipePage({ params, searchParams }: PageProps
       />
       <form action={deleteCustomFood}>
         <input type="hidden" name="foodId" value={recipe.id} />
-        <button className="btn-danger w-full">Rezept löschen</button>
+        <PendingButton className="btn-danger w-full">Rezept löschen</PendingButton>
       </form>
     </div>
   );
