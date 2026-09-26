@@ -88,6 +88,10 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
 
       <BarcodeScanner targetBase={ctx} />
 
+      <Link href={`/add/photo${ctx}`} className="btn-secondary w-full">
+        <span aria-hidden>📸</span> Mahlzeit per Foto schätzen
+      </Link>
+
       {q ? (
         <>
           {local.length > 0 && (
