@@ -236,7 +236,7 @@ body {
   gap: 16px;
   background: var(--ds-bg);
   pointer-events: none;
-  animation: splash-out 350ms ease-out 1100ms both;
+  animation: splash-out 250ms ease-out 700ms both;
 }
 [data-splash="off"] .splash {
   display: none;
@@ -244,18 +244,18 @@ body {
 .splash-logo {
   width: 96px;
   height: 96px;
-  animation: splash-pop 450ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: splash-pop 350ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 .splash-ring {
   stroke-dashoffset: var(--ring-len);
-  animation: splash-fill 900ms cubic-bezier(0.4, 0, 0.2, 1) 150ms forwards;
+  animation: splash-fill 550ms cubic-bezier(0.4, 0, 0.2, 1) 100ms forwards;
 }
 .splash-name {
   font-size: 17px;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--ds-text-primary);
-  animation: splash-pop 450ms ease-out 200ms both;
+  animation: splash-pop 350ms ease-out 120ms both;
 }
 @keyframes splash-fill {
   to {
@@ -276,7 +276,7 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .splash {
-    animation-delay: 300ms;
+    animation-delay: 200ms;
   }
   .splash-logo,
   .splash-name,

@@ -9,7 +9,8 @@ const pool =
   globalForDb.pool ??
   new Pool({
     connectionString: process.env.DATABASE_URL,
-    max: process.env.NODE_ENV === "production" ? 3 : 10,
+    // Enough for a page's parallel queries plus background prefetches without waiting for a free connection.
+    max: process.env.NODE_ENV === "production" ? 8 : 10,
   });
 globalForDb.pool = pool;
 

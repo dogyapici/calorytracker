@@ -37,7 +37,7 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
     <DaySwipe key={day} day={day} prev={addDays(day, -1)} next={addDays(day, 1)}>
       <div className="space-y-4">
         <header className="flex items-center justify-between">
-          <Link href={`/?day=${addDays(day, -1)}`} className="btn-secondary px-3" aria-label="Vorheriger Tag">
+          <Link href={`/?day=${addDays(day, -1)}`} prefetch className="btn-secondary px-3" aria-label="Vorheriger Tag">
             <Icon name="back" />
           </Link>
           <div className="text-center">
@@ -53,7 +53,7 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
               </Link>
             )}
           </div>
-          <Link href={`/?day=${addDays(day, 1)}`} className="btn-secondary px-3" aria-label="Nächster Tag">
+          <Link href={`/?day=${addDays(day, 1)}`} prefetch className="btn-secondary px-3" aria-label="Nächster Tag">
             <Icon name="forward" />
           </Link>
         </header>
