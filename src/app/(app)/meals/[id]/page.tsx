@@ -1,6 +1,5 @@
-import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
 import { notFound } from "next/navigation";
-import { Icon } from "@/components/icons";
 import { MealEditor } from "@/components/meal-editor";
 import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
@@ -30,12 +29,7 @@ export default async function EditMealPage({ params, searchParams }: PageProps<"
   }));
   return (
     <div className="space-y-4">
-      <header className="flex items-center gap-3">
-        <Link href={`/meals?day=${day}&meal=${meal}`} className="btn-secondary px-3" aria-label="Zurück">
-          <Icon name="back" />
-        </Link>
-        <h1 className="text-h1">Mahlzeit bearbeiten</h1>
-      </header>
+      <PageHeader back={`/meals?day=${day}&meal=${meal}`} eyebrow="Mahlzeiten" title="Mahlzeit bearbeiten" />
       <MealEditor meal={{ id: saved.id, name: saved.name }} initialItems={items} day={day} mealKey={meal} />
     </div>
   );

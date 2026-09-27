@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
 import { deleteSavedMeal } from "@/app/meal-actions";
 import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
@@ -19,12 +20,7 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center gap-3">
-        <Link href={`/add?day=${day}&meal=${meal}`} className="btn-secondary px-3" aria-label="Zurück">
-          <Icon name="back" />
-        </Link>
-        <h1 className="text-h1">Meine Mahlzeiten</h1>
-      </header>
+      <PageHeader back={`/add?day=${day}&meal=${meal}`} eyebrow="Gespeicherte Mahlzeiten" title="Mahlzeiten" />
       <Link href={`/meals/create?day=${day}&meal=${meal}`} className="btn-primary w-full">
         <Icon name="add" size={20} /> Neue Mahlzeit
       </Link>

@@ -11,6 +11,7 @@ import { logSavedMeal } from "@/app/meal-actions";
 import { fmt, MEALS } from "@/lib/nutrition";
 import { getFavoriteFoods, getRecentFoods, getRecipes, getSavedMeals, searchLocalFoods } from "@/lib/queries";
 import { Icon } from "@/components/icons";
+import { PageHeader } from "@/components/page-header";
 
 import { PendingButton } from "@/components/form-bits";
 
@@ -76,15 +77,16 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center gap-3">
-        <Link href={`/?day=${day}`} className="btn-secondary px-3" aria-label="Zurück">
-          <Icon name="back" />
-        </Link>
-        <h1 className="text-h1">
-          <span aria-hidden className="mr-1.5">{meal.emoji}</span>
-          {meal.label} hinzufügen
-        </h1>
-      </header>
+      <PageHeader
+        back={`/?day=${day}`}
+        eyebrow="Hinzufügen zu"
+        title={
+          <>
+            <span aria-hidden className="mr-2">{meal.emoji}</span>
+            {meal.label}
+          </>
+        }
+      />
 
       <Form className="flex gap-2" action="/add" role="search">
         <input type="hidden" name="day" value={day} />
@@ -97,7 +99,7 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
             type="search"
             aria-label="Lebensmittel suchen"
             defaultValue={q}
-            placeholder="Lebensmittel suchen, z. B. Haferflocken"
+            placeholder="z. B. Haferflocken"
             enterKeyHint="search"
             autoFocus={!q}
           />

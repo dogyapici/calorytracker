@@ -57,12 +57,12 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between gap-3">
-        <Link href={`/add?${backParams}`} className="btn-secondary px-3" aria-label="Zurück">
+        <Link href={`/add?${backParams}`} className="btn-round" aria-label="Zurück">
           <Icon name="back" />
         </Link>
         <form action={toggleFavorite}>
           <input type="hidden" name="foodId" value={food.id} />
-          <PendingButton className={`btn-secondary px-3 ${favorite ? "text-macro-carbs" : "text-text-tertiary"}`} aria-label={favorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"}>
+          <PendingButton className={`btn-round ${favorite ? "text-macro-carbs" : "text-text-tertiary"}`} aria-label={favorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"}>
             <Icon name="star" filled={favorite} />
           </PendingButton>
         </form>
@@ -72,7 +72,7 @@ export default async function FoodPage({ params, searchParams }: PageProps<"/foo
         <div className="space-y-4 p-card">
           <div>
             {subtitle && <p className="text-label muted">{subtitle}</p>}
-            <h1 className="text-h1">{food.name}</h1>
+            <h1 className={`${food.name.length > 28 ? "text-h2" : "text-h1"} text-balance break-words [hyphens:auto]`}>{food.name}</h1>
           </div>
           <p className="tabular-nums">
             <span className="text-display">{fmt(food.kcal)}</span>

@@ -1,5 +1,4 @@
 import { and, eq } from "drizzle-orm";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { deleteEntry, updateEntry } from "@/app/actions";
 import { AmountForm } from "@/components/amount-form";
@@ -7,7 +6,7 @@ import { db } from "@/db";
 import { entries } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { formatDay } from "@/lib/dates";
-import { Icon } from "@/components/icons";
+import { PageHeader } from "@/components/page-header";
 
 import { PendingButton } from "@/components/form-bits";
 
@@ -28,15 +27,7 @@ export default async function EntryPage({ params }: PageProps<"/entry/[id]">) {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-start gap-3">
-        <Link href={`/?day=${entry.day}`} className="btn-secondary px-3" aria-label="Zurück">
-          <Icon name="back" />
-        </Link>
-        <div className="min-w-0">
-          <h1 className="text-h2">{entry.name}</h1>
-          <p className="text-sm muted">{formatDay(entry.day)}</p>
-        </div>
-      </header>
+      <PageHeader back={`/?day=${entry.day}`} eyebrow="Eintrag bearbeiten" title={entry.name} subtitle={formatDay(entry.day)} />
       <AmountForm
         action={updateEntry}
         per100={per100}

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
 import { notFound } from "next/navigation";
 import { deleteCustomFood } from "@/app/actions";
 import { RecipeEditor } from "@/components/recipe-editor";
@@ -6,7 +6,6 @@ import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
 import { MEALS } from "@/lib/nutrition";
 import { getRecipe } from "@/lib/queries";
-import { Icon } from "@/components/icons";
 
 import { PendingButton } from "@/components/form-bits";
 
@@ -24,12 +23,7 @@ export default async function EditRecipePage({ params, searchParams }: PageProps
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center gap-3">
-        <Link href={`/food/${recipe.id}?day=${day}&meal=${meal}`} className="btn-secondary px-3" aria-label="Zurück">
-          <Icon name="back" />
-        </Link>
-        <h1 className="text-h1">Rezept bearbeiten</h1>
-      </header>
+      <PageHeader back={`/food/${recipe.id}?day=${day}&meal=${meal}`} eyebrow="Rezepte" title="Rezept bearbeiten" />
       <RecipeEditor
         recipe={{ id: recipe.id, name: recipe.name, servings: recipe.recipeServings ?? 1, cookedGrams: recipe.recipeCookedGrams }}
         initialIngredients={ingredients.map(({ food, grams }) => ({
