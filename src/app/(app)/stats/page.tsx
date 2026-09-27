@@ -32,6 +32,7 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
   const days = Array.from({ length: range }, (_, i) => addDays(from, i));
   const series = days.map((d) => ({
     label: formatDay(d, range === 7 ? { weekday: "short" } : { day: "numeric", month: "numeric" }),
+    title: formatDay(d, { weekday: "short", day: "numeric", month: "long" }),
     kcal: byDay.get(d)?.kcal ?? 0,
   }));
 

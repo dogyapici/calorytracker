@@ -95,7 +95,7 @@ export default async function BalancePage() {
             <h2 className="text-h3">Deine Wochen</h2>
             <p className="text-caption muted">Jeder Punkt ist eine Woche. Je weiter rechts, desto mehr hast du gegessen; je höher, desto mehr hast du zugenommen.</p>
           </div>
-          <BalanceScatter weeks={weeks} maintenance={balance.maintenance} target={target} predict={(k) => kgPerWeekAt(k, balance.maintenance)} />
+          <BalanceScatter weeks={weeks} maintenance={balance.maintenance} target={target} />
           <ul className="flex flex-wrap gap-x-4 gap-y-1 text-caption muted">
             <li className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-macro-carbs" /> Woche
