@@ -6,7 +6,7 @@ import { addDays, formatDay, today } from "@/lib/dates";
 import { fmt } from "@/lib/nutrition";
 import { getDailyTotals, getProfile, getStreak, getWeights } from "@/lib/queries";
 import { BALANCE_WEEKS, energyBalance } from "@/lib/energy-balance";
-import { BalanceCard } from "./balance-card";
+import { BalanceSummary } from "./balance-summary";
 
 export const metadata = { title: "Statistik" };
 
@@ -98,13 +98,13 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
         </Link>
       </div>
 
+      <BalanceSummary balance={balance} target={profile.kcalTarget} />
+
       <section className="card space-y-2">
         <h2 className="text-h3">Kalorien pro Tag</h2>
         <CalorieBars days={series} target={profile.kcalTarget} />
         <p className="text-caption muted">Gestrichelt: dein Tagesziel. Tage über dem Ziel sind ocker markiert.</p>
       </section>
-
-      <BalanceCard balance={balance} target={profile.kcalTarget} />
 
       <section className="card space-y-3">
         <h2 className="text-h3">Ø Makros pro Tag</h2>
