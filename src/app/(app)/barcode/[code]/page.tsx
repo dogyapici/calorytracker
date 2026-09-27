@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PageHeader } from "@/components/page-header";
 import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
 import { getOrImportBarcode } from "@/lib/queries";
@@ -25,7 +26,7 @@ export default async function BarcodePage({ params, searchParams }: PageProps<"/
 
   return (
     <div className="space-y-4">
-      <h1 className="text-h1">Barcode {code}</h1>
+      <PageHeader back={`/add${ctx}`} eyebrow={`Barcode ${code}`} title={failed ? "Gerade nicht erreichbar" : "Produkt nicht gefunden"} />
       <p className="card text-sm">
         {failed
           ? "Open Food Facts ist gerade nicht erreichbar. Versuche es gleich noch einmal."

@@ -112,10 +112,10 @@ Originalwerten:
 | display  | 40/44            | 700     | letter-spacing -0.02em   |
 | h1       | 28/34            | 700     | letter-spacing -0.01em   |
 | h2       | 20/26            | 600     |                          |
-| h3       | 17/22            | 600     |                          |
-| body     | 15/22            | 400     |                          |
-| label    | 13/18            | 500     |                          |
-| caption  | 12/16            | 500     | text-secondary           |
+| h3       | 18/24            | 600     |                          |
+| body     | 16/24            | 400     | Eingaben immer ≥ 16px (iOS zoomt sonst) |
+| label    | 14/20            | 500     | auch Button-Text in 15px |
+| caption  | 13/18            | 500     | text-secondary           |
 
 ---
 
@@ -127,7 +127,7 @@ Originalwerten:
 - Karten-Innenabstand: 20px
 - Radius: sm 8px (Chips, Inputs) · md 14px (Buttons) · lg 20px (Karten) ·
   xl 28px (Bottom Sheets) · full (Pills, Avatare)
-- Touch-Targets mindestens 44×44px
+- Touch-Targets mindestens 48×48px
 
 ---
 
@@ -209,3 +209,15 @@ Keine Formulierungen, die Essen oder den Nutzer bewerten.
 Im Profil unter „Darstellung“: Hell / Dunkel / System (Standard: System).
 Auswahl wird lokal gespeichert. Das Theme selbst ist fest `warm-minimal`. Neue Themes lassen sich hinzufügen, indem nur ein neues
 Token-Set angelegt wird – ohne Änderungen an Komponenten.
+
+---
+
+## 9. Seitenkopf
+
+Jede Unterseite nutzt `PageHeader` (src/components/page-header.tsx): optional
+ein runder Zurück-Knopf (48px), darüber eine kleine Zeile in primary
+(„Hinzufügen zu“, „Bearbeiten“), der Titel in h1 und darunter optional eine
+Zeile in text-secondary. Titel umbrechen ausgewogen (`text-wrap: balance`) und
+trennen deutsche Wörter; lange Titel (über 24 Zeichen) werden automatisch h2.
+Aktionen (Stern, Zeitraum-Wahl) stehen rechts oder in einer eigenen Zeile
+darunter, nie gequetscht neben einem langen Titel.

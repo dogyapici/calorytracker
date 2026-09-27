@@ -45,7 +45,8 @@ export function WeightForm({ today, lastKg }: { today: string; lastKg: number | 
   };
 
   return (
-    <form action={action} className="card space-y-3">
+    <form action={action} className="card space-y-4">
+      <h2 className="text-h3">Gewicht eintragen</h2>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="label" htmlFor="kg">Gewicht (kg)</label>

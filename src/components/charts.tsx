@@ -1,3 +1,4 @@
+import { formatDay } from "@/lib/dates";
 import { fmt } from "@/lib/nutrition";
 
 const W = 320;
@@ -58,43 +59,57 @@ export function CalorieBars({ days, target }: { days: { label: string; kcal: num
   );
 }
 
-/** Weight over time as a line with points. */
-export function WeightLine({ points }: { points: { label: string; kg: number }[] }) {
+/** Weight over time: line with a soft area below, spaced by date; the average as a dashed line. */
+export function WeightLine({ points, average }: { points: { day: string; kg: number }[]; average?: number | null }) {
   if (points.length < 2) return null;
   const min = Math.min(...points.map((p) => p.kg));
   const max = Math.max(...points.map((p) => p.kg));
-  const ticks = niceTicks(Math.floor(min - 1), Math.ceil(max + 1));
+  const ticks = niceTicks(Math.floor(min - 0.5), Math.ceil(max + 0.5));
   const lo = ticks[0];
   const hi = ticks[ticks.length - 1];
   const iw = W - PAD.left - PAD.right;
   const ih = H - PAD.top - PAD.bottom;
-  const x = (i: number) => PAD.left + (i / (points.length - 1)) * iw;
+  const t = (day: string) => Date.parse(`${day}T12:00:00Z`);
+  const t0 = t(points[0].day);
+  const span = t(points[points.length - 1].day) - t0 || 1;
+  const x = (day: string) => PAD.left + ((t(day) - t0) / span) * iw;
   const y = (v: number) => PAD.top + ih - ((v - lo) / (hi - lo)) * ih;
-  const path = points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.kg).toFixed(1)}`).join(" ");
-  const labelEvery = Math.ceil(points.length / 6);
+  const line = points.map((p, i) => `${i ? "L" : "M"}${x(p.day).toFixed(1)},${y(p.kg).toFixed(1)}`).join(" ");
+  const area = `${line} L${x(points[points.length - 1].day).toFixed(1)},${PAD.top + ih} L${PAD.left},${PAD.top + ih} Z`;
+  const labels = [0, 0.25, 0.5, 0.75, 1].map((f) => new Date(t0 + span * f).toISOString().slice(0, 10));
+  const label = (day: string) => formatDay(day, span > 200 * 86_400_000 ? { month: "short", year: "2-digit" } : { day: "numeric", month: "numeric" });
+  const last = points[points.length - 1];
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Gewichtsverlauf">
-      {ticks.map((t) => (
-        <g key={t}>
-          <text x={PAD.left - 4} y={y(t) + 3} textAnchor="end" className="fill-text-secondary text-[9px]">
-            {fmt(t, 1)}
-          </text>
-        </g>
+      <defs>
+        <linearGradient id="weight-area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" className="[stop-color:var(--color-primary)]" stopOpacity="0.22" />
+          <stop offset="1" className="[stop-color:var(--color-primary)]" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {ticks.map((v) => (
+        <text key={v} x={PAD.left - 4} y={y(v) + 3} textAnchor="end" className="fill-text-secondary text-[9px]">
+          {fmt(v, 1)}
+        </text>
       ))}
       <line x1={PAD.left} x2={W - PAD.right} y1={PAD.top + ih} y2={PAD.top + ih} className="stroke-border" />
-      <path d={path} fill="none" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" className="stroke-primary" />
-      {points.map((p, i) => (
-        <g key={i}>
-          <circle cx={x(i)} cy={y(p.kg)} r={points.length > 40 ? 1.5 : 3} className="fill-primary">
-            <title>{`${p.label}: ${fmt(p.kg, 1)} kg`}</title>
+      {average != null && (
+        <line x1={PAD.left} x2={W - PAD.right} y1={y(average)} y2={y(average)} strokeDasharray="4 3" strokeWidth={1.2} className="stroke-text-tertiary" />
+      )}
+      <path d={area} fill="url(#weight-area)" />
+      <path d={line} fill="none" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" className="stroke-primary" />
+      {points.length <= 40 &&
+        points.map((p) => (
+          <circle key={p.day} cx={x(p.day)} cy={y(p.kg)} r={2.5} className="fill-primary">
+            <title>{`${formatDay(p.day, { day: "numeric", month: "long" })}: ${fmt(p.kg, 1)} kg`}</title>
           </circle>
-          {i % labelEvery === 0 && (
-            <text x={x(i)} y={H - 6} textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-text-secondary text-[9px]">
-              {p.label}
-            </text>
-          )}
-        </g>
+        ))}
+      <circle cx={x(last.day)} cy={y(last.kg)} r={4.5} strokeWidth={2.5} className="fill-surface stroke-primary" />
+      {labels.map((d, i) => (
+        <text key={i} x={x(d)} y={H - 6} textAnchor={i === 0 ? "start" : i === labels.length - 1 ? "end" : "middle"} className="fill-text-secondary text-[9px]">
+          {label(d)}
+        </text>
       ))}
     </svg>
   );

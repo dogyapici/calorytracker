@@ -65,17 +65,17 @@
   --text-h2: 20px;
   --text-h2--line-height: 26px;
   --text-h2--font-weight: 600;
-  --text-h3: 17px;
-  --text-h3--line-height: 22px;
+  --text-h3: 18px;
+  --text-h3--line-height: 24px;
   --text-h3--font-weight: 600;
-  --text-body: 15px;
-  --text-body--line-height: 22px;
+  --text-body: 16px;
+  --text-body--line-height: 24px;
   --text-body--font-weight: 400;
-  --text-label: 13px;
-  --text-label--line-height: 18px;
+  --text-label: 14px;
+  --text-label--line-height: 20px;
   --text-label--font-weight: 500;
-  --text-caption: 12px;
-  --text-caption--line-height: 16px;
+  --text-caption: 13px;
+  --text-caption--line-height: 18px;
   --text-caption--font-weight: 500;
 
   /*
@@ -91,7 +91,7 @@
   --spacing-gutter: 20px;
   --spacing-card: 20px;
   --spacing-stack: 16px;
-  --spacing-touch: 44px;
+  --spacing-touch: 48px;
   --spacing-button: 52px;
 
   /* Motion: Ringe und Balken wachsen beim Laden von 0 auf den Wert (600ms) */
@@ -188,7 +188,7 @@ body {
 
 /* Inputs: surface-muted, kein Rand, radius sm, Fokus als 2px-Ring in primary */
 @utility input {
-  @apply w-full rounded-chip border-0 bg-surface-muted px-3 py-2.5 text-body text-text-primary outline-none placeholder:text-text-secondary focus:ring-2 focus:ring-primary;
+  @apply w-full min-h-touch rounded-chip border-0 bg-surface-muted px-3.5 py-3 text-body text-text-primary outline-none placeholder:text-text-secondary focus:ring-2 focus:ring-primary;
 }
 
 @utility label {
@@ -196,7 +196,7 @@ body {
 }
 
 @utility btn {
-  @apply inline-flex min-h-touch items-center justify-center gap-2 rounded-button px-4 py-2.5 text-label font-semibold transition duration-150 ease-out active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 motion-reduce:transition-none;
+  @apply inline-flex min-h-touch items-center justify-center gap-2 rounded-button px-4 py-2.5 text-[15px] font-semibold transition duration-150 ease-out active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 motion-reduce:transition-none;
 }
 
 @utility btn-primary {
@@ -209,6 +209,11 @@ body {
 
 @utility btn-ghost {
   @apply btn text-primary hover:bg-primary-soft;
+}
+
+/* Runder Symbol-Knopf (Zurück, Favorit, Tag wechseln) */
+@utility btn-round {
+  @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-text-primary shadow-card transition duration-150 ease-out active:scale-95 disabled:opacity-50 motion-reduce:transition-none;
 }
 
 @utility btn-danger {

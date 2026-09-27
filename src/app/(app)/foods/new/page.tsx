@@ -1,8 +1,7 @@
-import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
 import { dayOrToday } from "@/lib/dates";
 import { MEALS } from "@/lib/nutrition";
 import { CustomFoodForm } from "./custom-food-form";
-import { Icon } from "@/components/icons";
 
 export const metadata = { title: "Eigenes Lebensmittel" };
 
@@ -12,12 +11,7 @@ export default async function NewFoodPage({ searchParams }: PageProps<"/foods/ne
   const meal = MEALS.find((m) => m.key === sp.meal)?.key ?? "snack";
   return (
     <div className="space-y-4">
-      <header className="flex items-center gap-3">
-        <Link href={`/add?day=${day}&meal=${meal}`} className="btn-secondary px-3" aria-label="Zurück">
-          <Icon name="back" />
-        </Link>
-        <h1 className="text-h1">Eigenes Lebensmittel</h1>
-      </header>
+      <PageHeader back={`/add?day=${day}&meal=${meal}`} eyebrow="Neu anlegen" title="Eigenes Lebensmittel" />
       <CustomFoodForm day={day} meal={meal} />
     </div>
   );

@@ -37,7 +37,7 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
     <DaySwipe key={day} day={day} prev={addDays(day, -1)} next={addDays(day, 1)}>
       <div className="space-y-4">
         <header className="flex items-center justify-between">
-          <Link href={`/?day=${addDays(day, -1)}`} prefetch className="btn-secondary px-3" aria-label="Vorheriger Tag">
+          <Link href={`/?day=${addDays(day, -1)}`} prefetch className="btn-round" aria-label="Vorheriger Tag">
             <Icon name="back" />
           </Link>
           <div className="text-center">
@@ -53,7 +53,7 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
               </Link>
             )}
           </div>
-          <Link href={`/?day=${addDays(day, 1)}`} prefetch className="btn-secondary px-3" aria-label="Nächster Tag">
+          <Link href={`/?day=${addDays(day, 1)}`} prefetch className="btn-round" aria-label="Nächster Tag">
             <Icon name="forward" />
           </Link>
         </header>
@@ -101,7 +101,6 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
                     <span className="block">{meal.label}</span>
                     <span className="block text-caption font-normal tabular-nums muted">
                       {mealKcal > target ? `${fmt(mealKcal - target)} kcal über Ziel` : `noch ${fmt(target - mealKcal)} kcal`}
-                      {items.length > 0 && ` · ${items.length} ${items.length === 1 ? "Eintrag" : "Einträge"}`}
                     </span>
                   </span>
                 </span>
@@ -142,8 +141,8 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
                   <Icon name="add" size={20} /> Hinzufügen
                 </Link>
                 {items.length > 0 && (
-                  <Link href={`/meals/new?day=${day}&meal=${meal.key}`} className="btn text-caption muted hover:bg-surface-muted">
-                    Als Mahlzeit speichern
+                  <Link href={`/meals/new?day=${day}&meal=${meal.key}`} className="btn whitespace-nowrap text-label muted hover:bg-surface-muted" aria-label="Als Mahlzeit speichern">
+                    Als Mahlzeit
                   </Link>
                 )}
                 {items.length === 0 && (
@@ -151,7 +150,7 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
                     <input type="hidden" name="from" value={yesterday} />
                     <input type="hidden" name="to" value={day} />
                     <input type="hidden" name="meal" value={meal.key} />
-                    <PendingButton className="btn text-caption muted hover:bg-surface-muted">Wie gestern</PendingButton>
+                    <PendingButton className="btn whitespace-nowrap text-label muted hover:bg-surface-muted">Wie gestern</PendingButton>
                   </form>
                 )}
               </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CalorieBars } from "@/components/charts";
+import { PageHeader } from "@/components/page-header";
 import { requireUser } from "@/lib/auth";
 import { addDays, formatDay, today } from "@/lib/dates";
 import { fmt } from "@/lib/nutrition";
@@ -41,51 +42,57 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center justify-between">
-        <h1 className="text-h1">Statistik</h1>
-        <div className="flex rounded-button border border-border p-0.5">
-          {RANGES.map((r) => (
-            <Link key={r} href={`/stats?range=${r}`} className={`rounded-chip px-3 py-1 text-sm font-medium ${r === range ? "bg-primary text-on-primary" : ""}`}>
-              {r} T
-            </Link>
-          ))}
-        </div>
-      </header>
+      <PageHeader title="Statistik" subtitle={`Letzte ${range} Tage`} />
 
-      <section className="grid grid-cols-3 gap-3">
-        <div className="card p-3">
-          <p className="text-caption muted">Ø kcal</p>
-          <p className="text-h2">{fmt(avgKcal)}</p>
-          <p className="text-caption muted">Ziel {fmt(profile.kcalTarget)}</p>
+      <div className="grid grid-cols-3 gap-1 rounded-button bg-surface-muted p-1" role="tablist" aria-label="Zeitraum">
+        {RANGES.map((r) => (
+          <Link
+            key={r}
+            href={`/stats?range=${r}`}
+            scroll={false}
+            role="tab"
+            aria-selected={r === range}
+            className={`flex min-h-10 items-center justify-center rounded-chip text-label transition-colors duration-150 ${r === range ? "bg-surface font-semibold text-text-primary shadow-card" : "text-text-secondary"}`}
+          >
+            {r} Tage
+          </Link>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="card p-4">
+          <p className="text-label muted">Ø pro Tag</p>
+          <p className="mt-1 tabular-nums">
+            <span className="text-h1">{fmt(avgKcal)}</span> <span className="text-caption muted">kcal</span>
+          </p>
+          <p className="text-caption muted">Ziel {fmt(profile.kcalTarget)} kcal</p>
         </div>
-        <div className="card p-3">
-          <p className="text-caption muted">Im Ziel ±10 %</p>
-          <p className="text-h2">
-            {onTarget}/{logged.length}
+        <div className="card p-4">
+          <p className="text-label muted">Im Ziel (±10 %)</p>
+          <p className="mt-1 tabular-nums">
+            <span className="text-h1">{onTarget}</span> <span className="text-caption muted">von {logged.length} Tagen</span>
           </p>
           <p className="text-caption muted">erfasste Tage</p>
         </div>
-        <div className="card p-3">
-          <p className="text-caption muted">Gewicht</p>
-          <p className="text-h2">{weightChange === null ? "–" : `${weightChange > 0 ? "+" : ""}${fmt(weightChange, 1)}`}</p>
-          <p className="text-caption muted">kg im Zeitraum</p>
-        </div>
-      </section>
-
-      <section className="card flex items-center justify-around text-center">
-        <div>
-          <p className="text-h1">
-            <span aria-hidden>🔥</span> {streak.current}
+        <div className="card p-4">
+          <p className="text-label muted">Serie</p>
+          <p className="mt-1 tabular-nums">
+            <span className="text-h1">
+              <span aria-hidden>🔥</span> {streak.current}
+            </span>{" "}
+            <span className="text-caption muted">{streak.current === 1 ? "Tag" : "Tage"}</span>
           </p>
-          <p className="text-caption muted">Tage in Folge</p>
+          <p className="text-caption muted">Rekord {streak.longest} Tage</p>
         </div>
-        <div>
-          <p className="text-h1">
-            <span aria-hidden>🏆</span> {streak.longest}
+        <Link href="/weight" className="card pressable block p-4">
+          <p className="text-label muted">Gewicht</p>
+          <p className="mt-1 tabular-nums">
+            <span className="text-h1">{weightChange === null ? "–" : `${weightChange > 0 ? "+" : weightChange < 0 ? "−" : "±"}${fmt(Math.abs(weightChange), 1)}`}</span>{" "}
+            <span className="text-caption muted">kg</span>
           </p>
-          <p className="text-caption muted">Längste Serie</p>
-        </div>
-      </section>
+          <p className="text-caption font-semibold text-primary">Details ›</p>
+        </Link>
+      </div>
 
       <section className="card space-y-2">
         <h2 className="text-h3">Kalorien pro Tag</h2>
@@ -94,7 +101,7 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
       </section>
 
       <section className="card space-y-3">
-        <h2 className="text-h3">Ø Makronährstoffe pro erfasstem Tag</h2>
+        <h2 className="text-h3">Ø Makros pro Tag</h2>
         <div className="flex h-3 overflow-hidden rounded-full">
           <div className="bg-macro-protein" style={{ width: `${((avg("protein") * 4) / macroKcal) * 100}%` }} />
           <div className="bg-macro-carbs" style={{ width: `${((avg("carbs") * 4) / macroKcal) * 100}%` }} />

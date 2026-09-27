@@ -1,5 +1,6 @@
 import { and, eq, gte, lte } from "drizzle-orm";
 import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
 import { Icon } from "@/components/icons";
 import { db } from "@/db";
 import { water, weights } from "@/db/schema";
@@ -51,12 +52,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/calenda
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center gap-3">
-        <Link href="/" className="btn-secondary px-3" aria-label="Zurück zum Tagebuch">
-          <Icon name="back" />
-        </Link>
-        <h1 className="text-h1">Kalender</h1>
-      </header>
+      <PageHeader back="/" backLabel="Zurück zum Tagebuch" eyebrow="Tagebuch" title="Kalender" />
 
       <section className="card space-y-4">
         <div className="flex items-center justify-between">

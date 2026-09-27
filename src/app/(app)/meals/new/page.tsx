@@ -1,12 +1,11 @@
 import { and, eq } from "drizzle-orm";
-import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
 import { db } from "@/db";
 import { entries } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { dayOrToday, formatDay } from "@/lib/dates";
 import { fmt, MEALS } from "@/lib/nutrition";
 import { SaveMealForm } from "./save-meal-form";
-import { Icon } from "@/components/icons";
 
 export const metadata = { title: "Mahlzeit speichern" };
 
@@ -24,12 +23,7 @@ export default async function SaveMealPage({ searchParams }: PageProps<"/meals/n
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center gap-3">
-        <Link href={`/?day=${day}`} className="btn-secondary px-3" aria-label="Zurück">
-          <Icon name="back" />
-        </Link>
-        <h1 className="text-h1">Mahlzeit speichern</h1>
-      </header>
+      <PageHeader back={`/?day=${day}`} eyebrow="Aus dem Tagebuch" title="Mahlzeit speichern" />
       <section className="card">
         <p className="mb-2 text-sm muted">
           {meal.label} vom {formatDay(day, { day: "numeric", month: "long" })} · {fmt(kcal)} kcal
