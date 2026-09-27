@@ -20,6 +20,8 @@ const MEASURES = [
 export function WeightForm({ today, lastKg }: { today: string; lastKg: number | null }) {
   const [photo, setPhoto] = useState("");
   const [measuresOpen, setMeasuresOpen] = useState(false);
+  // The quick sheet covers the everyday case, so the full form stays folded until needed.
+  const [formOpen, setFormOpen] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -45,63 +47,80 @@ export function WeightForm({ today, lastKg }: { today: string; lastKg: number | 
   };
 
   return (
-    <form action={action} className="card space-y-4">
-      <h2 className="text-h3">Gewicht eintragen</h2>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="label" htmlFor="kg">Gewicht (kg)</label>
-          <input className="input text-lg tabular-nums" id="kg" name="kg" defaultValue={state?.values?.kg} inputMode="decimal" placeholder={lastKg ? String(lastKg).replace(".", ",") : "z. B. 75,5"} required />
-        </div>
-        <div>
-          <label className="label" htmlFor="day">Datum</label>
-          <input className="input" id="day" name="day" type="date" defaultValue={state?.values?.day ?? today} max={today} required />
-        </div>
-      </div>
-
-      <div className="rounded-button border border-border px-3 py-2">
-        <button type="button" onClick={() => setMeasuresOpen(!measuresOpen)} aria-expanded={measuresOpen} className="flex w-full items-center justify-between text-left text-sm font-medium">
-          Körpermaße (optional)
-          <Icon name="expand" size={20} className={`text-text-secondary transition-transform duration-300 ease-out ${measuresOpen ? "rotate-180" : ""}`} />
+    <form action={action} className="card p-0">
+      <h2>
+        <button
+          type="button"
+          onClick={() => setFormOpen(!formOpen)}
+          aria-expanded={formOpen}
+          className="flex w-full items-center gap-3 rounded-card px-card py-4 text-left transition-colors duration-150 active:bg-surface-muted"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-h3">Ausführlich eintragen</span>
+            <span className="block text-caption muted">Mit Körpermaßen und Fortschrittsfoto</span>
+          </span>
+          <Icon name="expand" size={20} className={`shrink-0 text-text-tertiary transition-transform duration-300 ease-out ${formOpen ? "rotate-180" : ""}`} />
         </button>
-        <Collapse open={measuresOpen} className="grid grid-cols-2 gap-3 pb-1 pt-3">
-          {MEASURES.map(([key, label]) => (
-            <div key={key}>
-              <label className="label" htmlFor={key}>{label}</label>
-              <input className="input tabular-nums" id={key} name={key} inputMode="decimal" defaultValue={state?.values?.[key]} />
+      </h2>
+      <Collapse open={formOpen}>
+        <div className="space-y-4 border-t border-border px-card pb-card pt-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label" htmlFor="kg">Gewicht (kg)</label>
+              <input className="input text-lg tabular-nums" id="kg" name="kg" defaultValue={state?.values?.kg} inputMode="decimal" placeholder={lastKg ? String(lastKg).replace(".", ",") : "z. B. 75,5"} required />
             </div>
-          ))}
-        </Collapse>
-      </div>
-
-      <div className="space-y-2">
-        <input type="hidden" name="photo" value={photo} />
-        <PhotoPicker frame="none" hint="Fortschrittsfoto" takeLabel={photo ? "Neues Foto" : "Foto (optional)"} onPick={onFile} />
-        {busy && <p className="text-sm muted">Foto wird vorbereitet…</p>}
-        {photoError && <p className="text-sm text-danger">{photoError}</p>}
-        {photo && (
-          <div className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photo} alt="Vorschau deines Fotos" className="max-h-72 w-full rounded-button object-contain bg-surface-muted" />
-            <button
-              type="button"
-              className="btn absolute right-2 top-2 bg-surface/90 px-2 py-1 text-xs"
-              onClick={() => setPhoto("")}
-            >
-              Entfernen
-            </button>
+            <div>
+              <label className="label" htmlFor="day">Datum</label>
+              <input className="input" id="day" name="day" type="date" defaultValue={state?.values?.day ?? today} max={today} required />
+            </div>
           </div>
-        )}
-        <p className="text-caption muted">Das Foto sieht nur du. Es wird verkleinert gespeichert, Standortdaten werden entfernt.</p>
-      </div>
 
-      <FormMessage state={state} />
-      {busy ? (
-        <button type="button" className="btn-primary w-full" disabled>
-          Eintragen
-        </button>
-      ) : (
-        <SubmitButton>Eintragen</SubmitButton>
-      )}
+          <div className="rounded-button border border-border px-3 py-2">
+            <button type="button" onClick={() => setMeasuresOpen(!measuresOpen)} aria-expanded={measuresOpen} className="flex w-full items-center justify-between text-left text-sm font-medium">
+              Körpermaße (optional)
+              <Icon name="expand" size={20} className={`text-text-secondary transition-transform duration-300 ease-out ${measuresOpen ? "rotate-180" : ""}`} />
+            </button>
+            <Collapse open={measuresOpen} className="grid grid-cols-2 gap-3 pb-1 pt-3">
+              {MEASURES.map(([key, label]) => (
+                <div key={key}>
+                  <label className="label" htmlFor={key}>{label}</label>
+                  <input className="input tabular-nums" id={key} name={key} inputMode="decimal" defaultValue={state?.values?.[key]} />
+                </div>
+              ))}
+            </Collapse>
+          </div>
+
+          <div className="space-y-2">
+            <input type="hidden" name="photo" value={photo} />
+            <PhotoPicker frame="none" hint="Fortschrittsfoto" takeLabel={photo ? "Neues Foto" : "Foto (optional)"} onPick={onFile} />
+            {busy && <p className="text-sm muted">Foto wird vorbereitet…</p>}
+            {photoError && <p className="text-sm text-danger">{photoError}</p>}
+            {photo && (
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photo} alt="Vorschau deines Fotos" className="max-h-72 w-full rounded-button object-contain bg-surface-muted" />
+                <button
+                  type="button"
+                  className="btn absolute right-2 top-2 bg-surface/90 px-2 py-1 text-xs"
+                  onClick={() => setPhoto("")}
+                >
+                  Entfernen
+                </button>
+              </div>
+            )}
+            <p className="text-caption muted">Das Foto sieht nur du. Es wird verkleinert gespeichert, Standortdaten werden entfernt.</p>
+          </div>
+
+          <FormMessage state={state} />
+          {busy ? (
+            <button type="button" className="btn-primary w-full" disabled>
+              Eintragen
+            </button>
+          ) : (
+            <SubmitButton>Eintragen</SubmitButton>
+          )}
+        </div>
+      </Collapse>
     </form>
   );
 }
