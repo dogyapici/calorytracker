@@ -226,6 +226,22 @@ export function balanceCarbs(kcal: number, g: Macros): Macros | null {
   return carbs < 0 ? null : { ...g, carbs };
 }
 
+/**
+ * Sets one macro and moves the difference into a partner (carbs, or fat when carbs itself moves),
+ * so the targets keep adding up to 100 % or to the calorie target while dragging a slider.
+ */
+export function setMacro(kcal: number, mode: MacroMode, values: Macros, key: keyof Macros, next: number): Macros {
+  const partner: keyof Macros = key === "carbs" ? "fat" : "carbs";
+  const other = (["protein", "carbs", "fat"] as const).find((k) => k !== key && k !== partner)!;
+  const weight = mode === "percent" ? { protein: 1, carbs: 1, fat: 1 } : KCAL_PER_GRAM;
+  const total = mode === "percent" ? 100 : kcal;
+  const room = Math.max(0, total - values[other] * weight[other]);
+  const value = Math.min(Math.max(0, next), room / weight[key]);
+  const rest = (room - value * weight[key]) / weight[partner];
+  const r = (n: number) => (mode === "percent" ? round(n, 1) : Math.round(n));
+  return { ...values, [key]: r(value), [partner]: r(Math.max(0, rest)) };
+}
+
 // ---------- Kalorienziele pro Mahlzeit ----------
 
 export type MealKey = (typeof MEALS)[number]["key"];

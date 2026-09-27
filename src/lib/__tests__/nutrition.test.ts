@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { balanceCarbs, bmr, checkMacros, computeRecipe, kcalFromMacros, macroTolerance, scaleFood, scaleNutrients, suggestTargets, sumNutrients } from "../nutrition";
+import { balanceCarbs, bmr, checkMacros, setMacro, computeRecipe, kcalFromMacros, macroTolerance, scaleFood, scaleNutrients, suggestTargets, sumNutrients } from "../nutrition";
 import { addDays, isIsoDay, today } from "../dates";
 import { hashPassword, verifyPassword } from "../password";
 
@@ -149,5 +149,24 @@ describe("meal split", () => {
     expect(mealTarget(2000, DEFAULT_MEAL_SPLIT, "lunch")).toBe(700);
     expect(mealTarget(2000, null, "lunch")).toBe(700);
     expect(mealTarget(2000, { breakfast: 20, lunch: 40, dinner: 30, snack: 10 }, "lunch")).toBe(800);
+  });
+});
+
+describe("setMacro", () => {
+  it("keeps percentages at 100 by moving carbs", () => {
+    const next = setMacro(2000, "percent", { protein: 30, carbs: 40, fat: 30 }, "protein", 35);
+    expect(next).toEqual({ protein: 35, carbs: 35, fat: 30 });
+  });
+
+  it("moves fat when carbs change and clamps to what is left", () => {
+    expect(setMacro(2000, "percent", { protein: 30, carbs: 40, fat: 30 }, "carbs", 90)).toEqual({ protein: 30, carbs: 70, fat: 0 });
+  });
+
+  it("keeps grams on the calorie target", () => {
+    const next = setMacro(2000, "grams", { protein: 150, carbs: 200, fat: 67 }, "protein", 170);
+    expect(next.protein).toBe(170);
+    expect(checkMacros(2000, "grams", next).ok).toBe(true);
+    const fat = setMacro(2000, "grams", next, "carbs", 150);
+    expect(checkMacros(2000, "grams", fat).ok).toBe(true);
   });
 });
