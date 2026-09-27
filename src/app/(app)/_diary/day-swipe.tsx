@@ -41,7 +41,7 @@ export function DaySwipe({ day, prev, next, children }: { day: string; prev: str
       style={{ touchAction: "pan-y" }}
       onPointerDown={(e) => {
         if (e.pointerType === "mouse" || leaving) return;
-        if (e.clientX < EDGE || (e.target as Element).closest("[data-swipe-row], input, textarea, select")) return;
+        if (e.clientX < EDGE || (e.target as Element).closest("[data-swipe-row], input, textarea, select, dialog")) return;
         start.current = { x: e.clientX, y: e.clientY, t: e.timeStamp, horizontal: null };
       }}
       onPointerMove={(e) => {

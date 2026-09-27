@@ -5,6 +5,8 @@ import { requireUser } from "@/lib/auth";
 import { addDays, formatDay, today } from "@/lib/dates";
 import { fmt } from "@/lib/nutrition";
 import { getDailyTotals, getProfile, getStreak, getWeights } from "@/lib/queries";
+import { BALANCE_WEEKS, energyBalance } from "@/lib/energy-balance";
+import { BalanceCard } from "./balance-card";
 
 export const metadata = { title: "Statistik" };
 
@@ -17,12 +19,14 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
   const to = today();
   const from = addDays(to, -(range - 1));
 
-  const [profile, totals, weights, streak] = await Promise.all([
+  const [profile, totals, weights, streak, balanceTotals] = await Promise.all([
     getProfile(user.id),
     getDailyTotals(user.id, from, to),
     getWeights(user.id, 400),
     getStreak(user.id),
+    getDailyTotals(user.id, addDays(to, -(BALANCE_WEEKS * 7 - 1)), to),
   ]);
+  const balance = energyBalance(balanceTotals, [...weights].reverse(), to);
 
   const byDay = new Map(totals.map((t) => [t.day, t]));
   const days = Array.from({ length: range }, (_, i) => addDays(from, i));
@@ -99,6 +103,8 @@ export default async function StatsPage({ searchParams }: PageProps<"/stats">) {
         <CalorieBars days={series} target={profile.kcalTarget} />
         <p className="text-caption muted">Gestrichelt: dein Tagesziel. Tage über dem Ziel sind ocker markiert.</p>
       </section>
+
+      <BalanceCard balance={balance} target={profile.kcalTarget} />
 
       <section className="card space-y-3">
         <h2 className="text-h3">Ø Makros pro Tag</h2>
