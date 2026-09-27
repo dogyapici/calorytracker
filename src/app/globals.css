@@ -65,17 +65,17 @@
   --text-h2: 20px;
   --text-h2--line-height: 26px;
   --text-h2--font-weight: 600;
-  --text-h3: 18px;
-  --text-h3--line-height: 24px;
+  --text-h3: 17px;
+  --text-h3--line-height: 23px;
   --text-h3--font-weight: 600;
-  --text-body: 16px;
-  --text-body--line-height: 24px;
+  --text-body: 15.5px;
+  --text-body--line-height: 23px;
   --text-body--font-weight: 400;
-  --text-label: 14px;
-  --text-label--line-height: 20px;
+  --text-label: 13.5px;
+  --text-label--line-height: 19px;
   --text-label--font-weight: 500;
-  --text-caption: 13px;
-  --text-caption--line-height: 18px;
+  --text-caption: 12.5px;
+  --text-caption--line-height: 17px;
   --text-caption--font-weight: 500;
 
   /*
@@ -188,7 +188,7 @@ body {
 
 /* Inputs: surface-muted, kein Rand, radius sm, Fokus als 2px-Ring in primary */
 @utility input {
-  @apply w-full min-h-touch rounded-chip border-0 bg-surface-muted px-3.5 py-3 text-body text-text-primary outline-none placeholder:text-text-secondary focus:ring-2 focus:ring-primary;
+  @apply w-full min-h-touch rounded-chip border-0 bg-surface-muted px-3.5 py-3 text-[16px] leading-6 text-text-primary outline-none placeholder:text-text-secondary focus:ring-2 focus:ring-primary;
 }
 
 @utility label {
@@ -196,7 +196,7 @@ body {
 }
 
 @utility btn {
-  @apply inline-flex min-h-touch items-center justify-center gap-2 rounded-button px-4 py-2.5 text-[15px] font-semibold transition duration-150 ease-out active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 motion-reduce:transition-none;
+  @apply inline-flex min-h-touch items-center justify-center gap-2 rounded-button px-4 py-2.5 text-[14.5px] font-semibold transition duration-150 ease-out active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 motion-reduce:transition-none;
 }
 
 @utility btn-primary {

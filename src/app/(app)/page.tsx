@@ -18,6 +18,14 @@ import { WaterTracker } from "./_diary/water-tracker";
 
 export const metadata = { title: "Tagebuch" };
 
+/** „Heute“, „Gestern“, „Morgen“ or the weekday: short enough to never wrap next to the arrows. */
+function dayTitle(day: string, now: string) {
+  if (day === now) return "Heute";
+  if (day === addDays(now, -1)) return "Gestern";
+  if (day === addDays(now, 1)) return "Morgen";
+  return formatDay(day, { weekday: "long" });
+}
+
 export default async function DiaryPage({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
   const { day: dayParam } = await searchParams;
@@ -40,15 +48,20 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
           <Link href={`/?day=${addDays(day, -1)}`} prefetch className="btn-round" aria-label="Vorheriger Tag">
             <Icon name="back" />
           </Link>
-          <div className="text-center">
-            <Link href={`/calendar?month=${day.slice(0, 7)}`} className="inline-flex items-center gap-1.5 rounded-chip px-2 py-0.5 hover:bg-surface-muted" aria-label="Kalender öffnen">
-              <h1 className="text-h2">{isToday ? "Heute" : formatDay(day)}</h1>
-              <Icon name="calendar" size={20} className="text-text-secondary" />
+          <div className="flex min-w-0 flex-col items-center">
+            <Link
+              href={`/calendar?month=${day.slice(0, 7)}`}
+              className="flex flex-col items-center rounded-button px-3 py-1 transition-colors duration-150 active:bg-surface-muted"
+              aria-label={`${formatDay(day, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}, Kalender öffnen`}
+            >
+              <h1 className="whitespace-nowrap text-h2">{dayTitle(day, today())}</h1>
+              <span className="flex items-center gap-1 whitespace-nowrap text-label muted">
+                <Icon name="calendar" size={15} />
+                {formatDay(day, { day: "numeric", month: "long", ...(day.slice(0, 4) !== today().slice(0, 4) && { year: "numeric" }) })}
+              </span>
             </Link>
-            {isToday ? (
-              <p className="text-caption muted">{formatDay(day)}</p>
-            ) : (
-              <Link href="/" className="block text-xs font-semibold text-primary">
+            {!isToday && (
+              <Link href="/" className="mt-1 rounded-full bg-primary-soft px-2.5 py-0.5 text-caption font-semibold text-primary">
                 Zu heute
               </Link>
             )}
