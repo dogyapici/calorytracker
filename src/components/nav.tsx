@@ -29,6 +29,7 @@ export function BottomNav() {
             <li key={item.href}>
               <Link
                 href={item.href}
+                prefetch
                 aria-current={active ? "page" : undefined}
                 className={`group flex min-h-touch flex-col items-center gap-0.5 pb-2 pt-1.5 text-caption transition-colors duration-200 ${active ? "text-primary" : "text-text-tertiary"}`}
               >

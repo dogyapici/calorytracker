@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
+import { useLayoutEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 // Welcher Tag zuletzt gezeigt wurde, damit der neue Tag von der richtigen Seite hereingleitet
@@ -26,11 +26,6 @@ export function DaySwipe({ day, prev, next, children }: { day: string; prev: str
     if (lastDay && lastDay !== day) setEnter(day > lastDay ? "next" : "prev");
     lastDay = day;
   }, [day]);
-
-  useEffect(() => {
-    router.prefetch(`/?day=${prev}`);
-    router.prefetch(`/?day=${next}`);
-  }, [day, prev, next, router]);
 
   const go = (dir: "prev" | "next") => {
     navigator.vibrate?.(10);
