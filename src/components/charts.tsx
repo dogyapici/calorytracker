@@ -76,7 +76,9 @@ export function WeightLine({ points, average }: { points: { day: string; kg: num
   const y = (v: number) => PAD.top + ih - ((v - lo) / (hi - lo)) * ih;
   const line = points.map((p, i) => `${i ? "L" : "M"}${x(p.day).toFixed(1)},${y(p.kg).toFixed(1)}`).join(" ");
   const area = `${line} L${x(points[points.length - 1].day).toFixed(1)},${PAD.top + ih} L${PAD.left},${PAD.top + ih} Z`;
-  const labels = [0, 0.25, 0.5, 0.75, 1].map((f) => new Date(t0 + span * f).toISOString().slice(0, 10));
+  // Up to five date labels, but never more than there are days, so short ranges don't print one date twice.
+  const steps = Math.min(4, Math.max(1, Math.round(span / 86_400_000)));
+  const labels = Array.from({ length: steps + 1 }, (_, i) => new Date(t0 + (span * i) / steps).toISOString().slice(0, 10));
   const label = (day: string) => formatDay(day, span > 200 * 86_400_000 ? { month: "short", year: "2-digit" } : { day: "numeric", month: "numeric" });
   const last = points[points.length - 1];
 

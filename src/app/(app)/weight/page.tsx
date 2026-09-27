@@ -9,6 +9,7 @@ import { WEIGHT_RANGES, weightStats } from "@/lib/weight-stats";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { WeightForm } from "./weight-form";
+import { QuickWeight, QuickWeightButton } from "./quick-weight";
 import { Icon } from "@/components/icons";
 
 import { PendingButton } from "@/components/form-bits";
@@ -35,7 +36,7 @@ const Delta = ({ value, unit = "kg" }: { value: number | null; unit?: string }) 
 
 export default async function WeightPage({ searchParams }: PageProps<"/weight">) {
   const user = await requireUser();
-  const { range: rangeParam } = await searchParams;
+  const { range: rangeParam, add } = await searchParams;
   const range = WEIGHT_RANGES.find((r) => r.key === rangeParam) ?? WEIGHT_RANGES[1];
   const [list, photos, profile] = await Promise.all([getWeights(user.id, 2000), getPhotoVersions(user.id), getProfile(user.id)]);
   const latest = list[0];
@@ -54,7 +55,12 @@ export default async function WeightPage({ searchParams }: PageProps<"/weight">)
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Gewicht" subtitle={latest ? `Zuletzt gewogen am ${formatDay(latest.day, { day: "numeric", month: "long" })}` : "Trag dein erstes Gewicht ein"} />
+      <PageHeader
+        title="Gewicht"
+        subtitle={latest ? `Zuletzt gewogen am ${formatDay(latest.day, { day: "numeric", month: "long" })}` : "Trag dein erstes Gewicht ein"}
+        action={<QuickWeightButton />}
+      />
+      <QuickWeight today={today()} lastKg={latest?.kg ?? null} weighedToday={latest?.day === today()} openOnLoad={add === "1"} />
 
       {stats && (
         <section className="card space-y-5" aria-label="Gewichtsstatistik">
