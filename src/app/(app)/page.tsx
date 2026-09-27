@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { copyMeal } from "@/app/actions";
-import { CalorieRing, MacroRow, MealRing } from "@/components/progress";
+import { GoalRing, MacroStat, MealRing } from "@/components/progress";
 import { requireUser } from "@/lib/auth";
 import { addDays, dayOrToday, formatDay, today } from "@/lib/dates";
 import { fmt, MEALS, mealTarget, sumNutrients } from "@/lib/nutrition";
@@ -89,19 +89,27 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
           title={formatDay(day, { weekday: "long", day: "numeric", month: "long" })}
           details={<DayNutrition entries={dayEntries} profile={profile} />}
         >
-          <div className="flex flex-col items-center gap-2">
-            <div data-ring>
-              <CalorieRing eaten={total.kcal} target={profile.kcalTarget} />
+          <div className="flex flex-col items-center gap-1">
+            <div data-ring className="w-full">
+              <GoalRing
+                eaten={total.kcal}
+                target={profile.kcalTarget}
+                macros={[
+                  { value: total.protein, target: profile.proteinTarget, stroke: "stroke-macro-protein" },
+                  { value: total.carbs, target: profile.carbsTarget, stroke: "stroke-macro-carbs" },
+                  { value: total.fat, target: profile.fatTarget, stroke: "stroke-macro-fat" },
+                ]}
+              />
             </div>
             <p className="text-label muted">
               <span className="text-text-primary">{fmt(total.kcal)}</span> von {fmt(profile.kcalTarget)}
               <span className="ml-0.5 text-caption">kcal</span> gegessen
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <MacroRow label="Eiweiß" value={total.protein} target={profile.proteinTarget} color="bg-macro-protein" />
-            <MacroRow label="Kohlenh." value={total.carbs} target={profile.carbsTarget} color="bg-macro-carbs" />
-            <MacroRow label="Fett" value={total.fat} target={profile.fatTarget} color="bg-macro-fat" />
+          <div className="grid grid-cols-3 divide-x divide-border">
+            <MacroStat label="Eiweiß" value={total.protein} target={profile.proteinTarget} color="bg-macro-protein" />
+            <MacroStat label="Kohlenh." value={total.carbs} target={profile.carbsTarget} color="bg-macro-carbs" />
+            <MacroStat label="Fett" value={total.fat} target={profile.fatTarget} color="bg-macro-fat" />
           </div>
         </DaySummary>
 
