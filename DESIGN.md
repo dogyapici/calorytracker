@@ -112,10 +112,10 @@ Originalwerten:
 | display  | 40/44            | 700     | letter-spacing -0.02em   |
 | h1       | 28/34            | 700     | letter-spacing -0.01em   |
 | h2       | 20/26            | 600     |                          |
-| h3       | 18/24            | 600     |                          |
-| body     | 16/24            | 400     | Eingaben immer ≥ 16px (iOS zoomt sonst) |
-| label    | 14/20            | 500     | auch Button-Text in 15px |
-| caption  | 13/18            | 500     | text-secondary           |
+| h3       | 17/23            | 600     |                          |
+| body     | 15.5/23          | 400     | Eingaben immer 16px (iOS zoomt sonst) |
+| label    | 13.5/19          | 500     | Button-Text 14.5px       |
+| caption  | 12.5/17          | 500     | text-secondary           |
 
 ---
 
