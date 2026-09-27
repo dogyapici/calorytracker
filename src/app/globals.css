@@ -310,3 +310,63 @@ body {
   .water-wave,
   .water-wave-back { animation: none; }
 }
+
+/* Schieberegler (src/components/slider.tsx): Spur füllt sich bis zum Knopf in --accent. */
+.range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 32px;
+  background: transparent;
+  cursor: pointer;
+}
+.range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--accent) var(--fill), var(--ds-border) var(--fill));
+}
+.range::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ds-border);
+}
+.range::-moz-range-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.range::-webkit-slider-thumb {
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  margin-top: -9px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  background: var(--ds-surface);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+  transition: transform 150ms ease-out;
+}
+.range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  background: var(--ds-surface);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+  transition: transform 150ms ease-out;
+}
+.range:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.range:active::-moz-range-thumb {
+  transform: scale(1.15);
+}
+.range:focus-visible {
+  outline: none;
+}
+.range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 5px var(--ds-primary-soft);
+}
+.range:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 5px var(--ds-primary-soft);
+}
