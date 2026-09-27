@@ -404,3 +404,82 @@ dialog.sheet::backdrop {
     animation: none;
   }
 }
+dialog.sheet {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Erfolgseffekt (src/components/celebrate.ts) */
+.celebrate {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  overflow: hidden;
+  pointer-events: none;
+}
+.confetti {
+  position: absolute;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti 1200ms cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+}
+@keyframes confetti {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--r));
+  }
+}
+.celebrate-toast {
+  position: fixed;
+  top: max(1rem, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 91;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--ds-primary);
+  color: var(--ds-on-primary);
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--ds-shadow-elevated);
+  pointer-events: none;
+  animation: celebrate-toast 2400ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes celebrate-toast {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -16px) scale(0.9);
+  }
+  12%,
+  82% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+}
+.celebrate-pulse {
+  animation: celebrate-pulse 700ms cubic-bezier(0.2, 0.8, 0.2, 1.4);
+}
+@keyframes celebrate-pulse {
+  40% {
+    transform: scale(1.07);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .celebrate-toast {
+    animation-timing-function: step-end;
+  }
+  .celebrate-pulse {
+    animation: none;
+  }
+}

@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { copyMeal } from "@/app/actions";
-import { NutrientDetails } from "@/components/nutrient-details";
 import { CalorieRing, MacroRow, MealRing } from "@/components/progress";
 import { requireUser } from "@/lib/auth";
 import { addDays, dayOrToday, formatDay, today } from "@/lib/dates";
@@ -15,6 +14,8 @@ import { DaySwipe } from "./_diary/day-swipe";
 import { CLOSED_MEALS_COOKIE } from "./_diary/constants";
 import { SwipeToDelete } from "./_diary/swipe-to-delete";
 import { WaterTracker } from "./_diary/water-tracker";
+import { DayNutrition } from "./_diary/day-nutrition";
+import { DaySummary } from "./_diary/day-summary";
 
 export const metadata = { title: "Tagebuch" };
 
@@ -80,9 +81,18 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
           </p>
         )}
 
-        <section className="card space-y-5">
+        <DaySummary
+          day={day}
+          isToday={isToday}
+          eaten={total.kcal}
+          target={profile.kcalTarget}
+          title={formatDay(day, { weekday: "long", day: "numeric", month: "long" })}
+          details={<DayNutrition entries={dayEntries} profile={profile} />}
+        >
           <div className="flex flex-col items-center gap-2">
-            <CalorieRing eaten={total.kcal} target={profile.kcalTarget} />
+            <div data-ring>
+              <CalorieRing eaten={total.kcal} target={profile.kcalTarget} />
+            </div>
             <p className="text-label muted">
               <span className="text-text-primary">{fmt(total.kcal)}</span> von {fmt(profile.kcalTarget)}
               <span className="ml-0.5 text-caption">kcal</span> gegessen
@@ -93,9 +103,7 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
             <MacroRow label="Kohlenh." value={total.carbs} target={profile.carbsTarget} color="bg-macro-carbs" />
             <MacroRow label="Fett" value={total.fat} target={profile.fatTarget} color="bg-macro-fat" />
           </div>
-        </section>
-
-        <NutrientDetails entries={dayEntries} kcalTarget={profile.kcalTarget} />
+        </DaySummary>
 
         {MEALS.map((meal) => {
           const items = dayEntries.filter((e) => e.meal === meal.key);

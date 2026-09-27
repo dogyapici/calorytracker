@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useOptimistic, useTransition } from "react";
+import { useId, useOptimistic, useRef, useTransition } from "react";
+import { celebrate } from "@/components/celebrate";
 import { addWater } from "@/app/tracking-actions";
 import { Icon } from "@/components/icons";
 import { fmt } from "@/lib/nutrition";
@@ -18,9 +19,11 @@ export function WaterTracker({ day, ml, targetMl }: { day: string; ml: number; t
   const [shown, setShown] = useOptimistic(ml, (current, delta: number) => Math.max(0, current + delta));
   const [, startTransition] = useTransition();
   const clip = useId();
+  const bottle = useRef<SVGSVGElement>(null);
   const change = (delta: number) =>
     startTransition(async () => {
-      navigator.vibrate?.(15);
+      if (shown < targetMl && shown + delta >= targetMl) celebrate(bottle.current, "Wasserziel erreicht 💧");
+      else navigator.vibrate?.(15);
       setShown(delta);
       await addWater(day, delta);
     });
@@ -43,7 +46,7 @@ export function WaterTracker({ day, ml, targetMl }: { day: string; ml: number; t
       </div>
 
       <div className="flex items-center gap-6">
-        <svg viewBox="0 0 100 150" className="h-44 w-auto shrink-0 text-macro-protein" aria-hidden>
+        <svg ref={bottle} viewBox="0 0 100 150" className="h-44 w-auto shrink-0 text-macro-protein" aria-hidden>
           <defs>
             <clipPath id={clip}>
               <path d={BOTTLE} />

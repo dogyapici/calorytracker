@@ -116,3 +116,60 @@ export function WeightLine({ points, average }: { points: { day: string; kg: num
     </svg>
   );
 }
+
+/**
+ * Each week as a dot: average calories (x) against weight change (y). The line is what the energy
+ * balance predicts around the estimated maintenance; the dashed vertical marks the calorie target.
+ */
+export function BalanceScatter({
+  weeks,
+  maintenance,
+  target,
+  predict,
+}: {
+  weeks: { start: string; avgKcal: number; kgPerWeek: number }[];
+  maintenance: number;
+  target: number;
+  predict: (kcal: number) => number;
+}) {
+  const kcals = [...weeks.map((w) => w.avgKcal), maintenance, target];
+  const xTicks = niceTicks(Math.min(...kcals) - 150, Math.max(...kcals) + 150);
+  const x0 = xTicks[0];
+  const x1 = xTicks[xTicks.length - 1];
+  const kgs = [...weeks.map((w) => w.kgPerWeek), predict(x0), predict(x1), 0];
+  const yLimit = Math.max(0.5, ...kgs.map(Math.abs));
+  const yTicks = niceTicks(-yLimit, yLimit);
+  const y0 = yTicks[0];
+  const y1 = yTicks[yTicks.length - 1];
+  const iw = W - PAD.left - PAD.right;
+  const ih = H - PAD.top - PAD.bottom;
+  const x = (v: number) => PAD.left + ((v - x0) / (x1 - x0)) * iw;
+  const y = (v: number) => PAD.top + ih - ((v - y0) / (y1 - y0)) * ih;
+  const signed = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${fmt(Math.abs(v), 2)}`;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Kalorien und Gewichtsveränderung pro Woche">
+      {yTicks.map((v) => (
+        <g key={v}>
+          <line x1={PAD.left} x2={W - PAD.right} y1={y(v)} y2={y(v)} className={v === 0 ? "stroke-text-tertiary" : "stroke-border"} strokeWidth={v === 0 ? 1 : 0.5} />
+          <text x={PAD.left - 4} y={y(v) + 3} textAnchor="end" className="fill-text-secondary text-[9px]">
+            {signed(v)}
+          </text>
+        </g>
+      ))}
+      {xTicks.map((v, i) => (
+        <text key={v} x={x(v)} y={H - 6} textAnchor={i === 0 ? "start" : i === xTicks.length - 1 ? "end" : "middle"} className="fill-text-secondary text-[9px]">
+          {fmt(v)}
+        </text>
+      ))}
+      <line x1={x(target)} x2={x(target)} y1={PAD.top} y2={PAD.top + ih} strokeDasharray="4 3" className="stroke-accent-calories" strokeWidth={1.2} />
+      <line x1={x(x0)} x2={x(x1)} y1={y(predict(x0))} y2={y(predict(x1))} className="stroke-primary" strokeWidth={2} strokeLinecap="round" opacity={0.5} />
+      <circle cx={x(maintenance)} cy={y(0)} r={4} className="fill-surface stroke-primary" strokeWidth={2} />
+      {weeks.map((w) => (
+        <circle key={w.start} cx={x(w.avgKcal)} cy={y(w.kgPerWeek)} r={4.5} className="fill-macro-carbs stroke-surface" strokeWidth={1.5}>
+          <title>{`Woche ab ${formatDay(w.start, { day: "numeric", month: "long" })}: Ø ${fmt(w.avgKcal)} kcal, ${signed(w.kgPerWeek)} kg`}</title>
+        </circle>
+      ))}
+    </svg>
+  );
+}
