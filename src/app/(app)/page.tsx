@@ -3,13 +3,15 @@ import { GoalRing, MacroPill, MealRing } from "@/components/progress";
 import { requireUser } from "@/lib/auth";
 import { addDays, dayOrToday, formatDay, today } from "@/lib/dates";
 import { fmt, MEALS, mealTarget, sumNutrients } from "@/lib/nutrition";
-import { getEntriesForDay, getProfile, getStreak, getWater } from "@/lib/queries";
+import { getDailyTotals, getEntriesForDay, getProfile, getStreak, getWater } from "@/lib/queries";
 import { Icon } from "@/components/icons";
 
 import { DaySwipe } from "./_diary/day-swipe";
 import { WaterTracker } from "./_diary/water-tracker";
 import { DayNutrition } from "./_diary/day-nutrition";
 import { DaySummary } from "./_diary/day-summary";
+import { WeekStrip } from "./_diary/week-strip";
+import { weekStart } from "@/lib/training";
 
 export const metadata = { title: "Tagebuch" };
 
@@ -25,11 +27,13 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
   const { day: dayParam } = await searchParams;
   const day = dayOrToday(dayParam);
-  const [profile, dayEntries, streak, waterMl] = await Promise.all([
+  const monday = weekStart(day);
+  const [profile, dayEntries, streak, waterMl, weekTotals] = await Promise.all([
     getProfile(user.id),
     getEntriesForDay(user.id, day),
     getStreak(user.id),
     getWater(user.id, day),
+    getDailyTotals(user.id, monday, addDays(monday, 6)),
   ]);
   const total = sumNutrients(dayEntries);
   const isToday = day === today();
@@ -37,14 +41,11 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
   return (
     <DaySwipe key={day} day={day} prev={addDays(day, -1)} next={addDays(day, 1)}>
       <div className="space-y-4">
-        <header className="flex items-center justify-between">
-          <Link href={`/?day=${addDays(day, -1)}`} prefetch className="btn-round" aria-label="Vorheriger Tag">
-            <Icon name="back" />
-          </Link>
-          <div className="flex min-w-0 flex-col items-center">
+        <header className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
             <Link
               href={`/calendar?month=${day.slice(0, 7)}`}
-              className="flex flex-col items-center rounded-button px-3 py-1 transition-colors duration-150 active:bg-surface-muted"
+              className="-mx-2 flex min-w-0 flex-col rounded-button px-2 py-1 transition-colors duration-150 active:bg-surface-muted"
               aria-label={`${formatDay(day, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}, Kalender öffnen`}
             >
               <h1 className="whitespace-nowrap text-h2">{dayTitle(day, today())}</h1>
@@ -53,15 +54,21 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
                 {formatDay(day, { day: "numeric", month: "long", ...(day.slice(0, 4) !== today().slice(0, 4) && { year: "numeric" }) })}
               </span>
             </Link>
-            {!isToday && (
-              <Link href="/" className="mt-1 rounded-full bg-primary-soft px-2.5 py-0.5 text-caption font-semibold text-primary">
-                Zu heute
+            <div className="flex shrink-0 items-center gap-2">
+              {!isToday && (
+                <Link href="/" className="rounded-full bg-primary-soft px-3 py-1.5 text-caption font-semibold text-primary">
+                  Zu heute
+                </Link>
+              )}
+              <Link href={`/?day=${addDays(day, -7)}`} prefetch className="btn-round h-10 w-10" aria-label="Vorherige Woche">
+                <Icon name="back" size={20} />
               </Link>
-            )}
+              <Link href={`/?day=${addDays(day, 7)}`} prefetch className="btn-round h-10 w-10" aria-label="Nächste Woche">
+                <Icon name="forward" size={20} />
+              </Link>
+            </div>
           </div>
-          <Link href={`/?day=${addDays(day, 1)}`} prefetch className="btn-round" aria-label="Nächster Tag">
-            <Icon name="forward" />
-          </Link>
+          <WeekStrip day={day} today={today()} logged={new Set(weekTotals.filter((t) => t.kcal > 0).map((t) => t.day))} />
         </header>
 
         {isToday && streak.current > 0 && (
