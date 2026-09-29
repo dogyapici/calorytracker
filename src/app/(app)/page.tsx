@@ -43,30 +43,26 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
       <div className="space-y-4">
         <header className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <Link
-              href={`/calendar?month=${day.slice(0, 7)}`}
-              className="-mx-2 flex min-w-0 flex-col rounded-button px-2 py-1 transition-colors duration-150 active:bg-surface-muted"
-              aria-label={`${formatDay(day, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}, Kalender öffnen`}
-            >
-              <h1 className="whitespace-nowrap text-h2">{dayTitle(day, today())}</h1>
-              <span className="flex items-center gap-1 whitespace-nowrap text-label muted">
-                <Icon name="calendar" size={15} />
-                {formatDay(day, { day: "numeric", month: "long", ...(day.slice(0, 4) !== today().slice(0, 4) && { year: "numeric" }) })}
-              </span>
-            </Link>
-            <div className="flex shrink-0 items-center gap-2">
-              {!isToday && (
-                <Link href="/" className="rounded-full bg-primary-soft px-3 py-1.5 text-caption font-semibold text-primary">
-                  Zu heute
+            <div className="flex min-w-0 items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element -- tiny static SVG, no optimisation needed */}
+              <img src="/icon.svg" alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[11px] shadow-card" />
+              <div className="min-w-0">
+                <h1 className="whitespace-nowrap text-h2 leading-tight">CalTracker</h1>
+                <Link
+                  href={`/calendar?month=${day.slice(0, 7)}`}
+                  className="-mx-1 flex items-center gap-1 whitespace-nowrap rounded-chip px-1 text-label muted transition-colors duration-150 active:bg-surface-muted"
+                  aria-label={`${formatDay(day, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}, Kalender öffnen`}
+                >
+                  <Icon name="calendar" size={15} />
+                  {dayTitle(day, today())}, {formatDay(day, { day: "numeric", month: "long", ...(day.slice(0, 4) !== today().slice(0, 4) && { year: "numeric" }) })}
                 </Link>
-              )}
-              <Link href={`/?day=${addDays(day, -7)}`} prefetch className="btn-round h-10 w-10" aria-label="Vorherige Woche">
-                <Icon name="back" size={20} />
-              </Link>
-              <Link href={`/?day=${addDays(day, 7)}`} prefetch className="btn-round h-10 w-10" aria-label="Nächste Woche">
-                <Icon name="forward" size={20} />
-              </Link>
+              </div>
             </div>
+            {!isToday && (
+              <Link href="/" className="shrink-0 rounded-full bg-primary-soft px-3 py-1.5 text-caption font-semibold text-primary">
+                Zu heute
+              </Link>
+            )}
           </div>
           <WeekStrip day={day} today={today()} logged={new Set(weekTotals.filter((t) => t.kcal > 0).map((t) => t.day))} />
         </header>
