@@ -178,6 +178,7 @@ export async function removeEntry(id: number) {
   if (!Number.isInteger(id)) return;
   await db.delete(entries).where(and(eq(entries.id, id), eq(entries.userId, user.id)));
   revalidatePath("/");
+  revalidatePath("/diary/[meal]", "page");
 }
 
 export async function copyMeal(formData: FormData) {
@@ -198,6 +199,7 @@ export async function copyMeal(formData: FormData) {
     );
   }
   revalidatePath("/");
+  revalidatePath("/diary/[meal]", "page");
 }
 
 // ---------- Foods ----------
