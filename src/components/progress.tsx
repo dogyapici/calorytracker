@@ -25,9 +25,9 @@ export function ProgressBar({
   );
 }
 
-// Tagesziel-Ring: dicker Strich mit Verlauf, in der Mitte der Anteil am Ziel in Prozent.
+// Tagesziel-Ring: dicker Strich mit Verlauf, in der Mitte die übrigen kcal.
 // Überschreitung wie überall in warning.
-export function GoalRing({ eaten, target, size = 148 }: { eaten: number; target: number; size?: number }) {
+export function GoalRing({ eaten, target, size = 168 }: { eaten: number; target: number; size?: number }) {
   const stroke = 16;
   const r = (size - stroke) / 2;
   const pct = target > 0 ? eaten / target : 0;
@@ -59,8 +59,10 @@ export function GoalRing({ eaten, target, size = 148 }: { eaten: number; target:
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className={`text-[26px] font-extrabold leading-none tabular-nums ${over ? "text-warning" : ""}`}>{fmt(pct * 100)} %</span>
-        <span className="mt-1 text-caption text-text-secondary">Tagesziel</span>
+        <span className={`${fmt(Math.abs(target - eaten)).length > 4 ? "text-[30px]" : "text-[36px]"} font-extrabold leading-none tabular-nums ${over ? "text-warning" : ""}`}>
+          {fmt(Math.abs(target - eaten))}
+        </span>
+        <span className="mt-1 text-caption text-text-secondary">{over ? "kcal über Ziel" : "kcal übrig"}</span>
       </div>
     </div>
   );

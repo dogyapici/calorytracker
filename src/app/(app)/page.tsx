@@ -90,24 +90,16 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
               <p className="text-caption muted">Deine Werte für {isToday ? "heute" : "diesen Tag"}</p>
             </div>
           </div>
-          <div className="flex items-center justify-around gap-4">
+          <div className="flex flex-col items-center gap-3">
             <div data-ring>
               <GoalRing eaten={total.kcal} target={profile.kcalTarget} />
             </div>
-            <div className="min-w-0 text-center">
-              <p className={`text-[34px] font-extrabold leading-none tabular-nums ${total.kcal > profile.kcalTarget ? "text-warning" : ""}`}>
-                {fmt(Math.abs(profile.kcalTarget - total.kcal))}
-              </p>
-              <p className="mt-1 text-body leading-snug text-text-secondary">
-                {total.kcal > profile.kcalTarget ? "kcal über Ziel" : "kcal übrig"}
-                <br />
-                {isToday ? "heute" : "an diesem Tag"}
-              </p>
-              <p className="mt-3 flex items-center justify-center gap-2 text-label tabular-nums text-text-secondary">
-                <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent-calories" />
-                {fmt(total.kcal)} gegessen
-              </p>
-            </div>
+            <p className="flex items-center gap-2 text-label tabular-nums text-text-secondary">
+              <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent-calories" />
+              <span>
+                <span className="font-semibold text-text-primary">{fmt(total.kcal)}</span> von {fmt(profile.kcalTarget)} kcal gegessen
+              </span>
+            </p>
           </div>
           <div className="grid grid-cols-3 divide-x divide-border">
             <MacroPill label="Eiweiß" value={total.protein} target={profile.proteinTarget} color="bg-macro-protein" icon="protein" />
