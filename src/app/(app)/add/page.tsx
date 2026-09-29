@@ -7,13 +7,14 @@ import type { Food } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { dayOrToday } from "@/lib/dates";
 import { searchProducts, type OffFood } from "@/lib/off";
-import { logSavedMeal } from "@/app/meal-actions";
-import { fmt, MEALS } from "@/lib/nutrition";
-import { getFavoriteFoods, getRecentFoods, getRecipes, getSavedMeals, searchLocalFoods } from "@/lib/queries";
+import { MEALS } from "@/lib/nutrition";
+import { getFavoriteFoods, getFrequentFoods, getRecentFoods, searchLocalFoods } from "@/lib/queries";
 import { Icon } from "@/components/icons";
 import { PageHeader } from "@/components/page-header";
 
 import { PendingButton } from "@/components/form-bits";
+import { ListFilter } from "./list-filter";
+import { LISTS, type ListKey } from "./lists";
 
 export const metadata = { title: "Hinzufügen" };
 
@@ -71,9 +72,12 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
       fat: f.fat,
       }));
 
-  const [recent, favorites, recipes, savedMeals] = q
-    ? [[], [], [], []]
-    : await Promise.all([getRecentFoods(user.id), getFavoriteFoods(user.id), getRecipes(user.id), getSavedMeals(user.id)]);
+  const list: ListKey = LISTS.find((l) => l.key === sp.list)?.key ?? "recent";
+  const listItems: FoodListItem[] = q
+    ? []
+    : list === "frequent"
+      ? (await getFrequentFoods(user.id)).map(({ food, uses }) => ({ ...localItem(food), badge: `${uses}× gegessen` }))
+      : (await (list === "favorites" ? getFavoriteFoods(user.id) : getRecentFoods(user.id))).map(localItem);
 
   return (
     <div className="space-y-4">
@@ -138,55 +142,18 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
           </section>
         </>
       ) : (
-        <>
-          {savedMeals.length > 0 && (
-            <section className="space-y-2">
-              <div className="flex items-baseline justify-between">
-                <h2 className="text-label muted">Meine Mahlzeiten</h2>
-                <Link href={`/meals${ctx}`} className="text-xs font-semibold text-primary">
-                  Verwalten
-                </Link>
-              </div>
-              <ul className="card divide-y divide-border p-0">
-                {savedMeals.map((m) => (
-                  <li key={m.id} className="flex items-center gap-3 px-4 py-2.5">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{m.name}</p>
-                      <p className="truncate text-caption muted">{m.items.map((i) => i.food.name).join(", ")}</p>
-                    </div>
-                    <span className="shrink-0 text-sm tabular-nums">{fmt(m.kcal)} kcal</span>
-                    <form action={logSavedMeal}>
-                      <input type="hidden" name="id" value={m.id} />
-                      <input type="hidden" name="day" value={day} />
-                      <input type="hidden" name="meal" value={meal.key} />
-                      <PendingButton className="btn-primary px-3 py-1.5 text-xs">Eintragen</PendingButton>
-                    </form>
-                  </li>
-                ))}
-              </ul>
-            </section>
+        <section className="space-y-3">
+          <ListFilter value={list} />
+          {listItems.length ? (
+            <FoodList items={listItems} />
+          ) : (
+            <p className="card text-sm muted">
+              {list === "favorites"
+                ? "Noch keine Favoriten. Tippe auf einem Lebensmittel auf den Stern, um es hier zu sammeln."
+                : "Noch nichts erfasst. Suche ein Lebensmittel oder scanne einen Barcode."}
+            </p>
           )}
-          {favorites.length > 0 && (
-            <section className="space-y-2">
-              <h2 className="text-label muted">Favoriten</h2>
-              <FoodList items={favorites.map(localItem)} />
-            </section>
-          )}
-          {recipes.length > 0 && (
-            <section className="space-y-2">
-              <h2 className="text-label muted">Meine Rezepte</h2>
-              <FoodList items={recipes.map(localItem)} />
-            </section>
-          )}
-          <section className="space-y-2">
-            <h2 className="text-label muted">Zuletzt gegessen</h2>
-            {recent.length ? (
-              <FoodList items={recent.map(localItem)} />
-            ) : (
-              <p className="card text-sm muted">Noch nichts erfasst. Suche ein Lebensmittel oder scanne einen Barcode.</p>
-            )}
-          </section>
-        </>
+        </section>
       )}
 
       <div className="grid grid-cols-3 gap-2">
