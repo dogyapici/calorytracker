@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GoalRing, MacroStat, MealRing } from "@/components/progress";
+import { GoalRing, MacroPill, MealRing } from "@/components/progress";
 import { requireUser } from "@/lib/auth";
 import { addDays, dayOrToday, formatDay, today } from "@/lib/dates";
 import { fmt, MEALS, mealTarget, sumNutrients } from "@/lib/nutrition";
@@ -81,27 +81,38 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
           title={formatDay(day, { weekday: "long", day: "numeric", month: "long" })}
           details={<DayNutrition entries={dayEntries} profile={profile} />}
         >
-          <div className="flex flex-col items-center gap-1">
-            <div data-ring className="w-full">
-              <GoalRing
-                eaten={total.kcal}
-                target={profile.kcalTarget}
-                macros={[
-                  { value: total.protein, target: profile.proteinTarget, stroke: "stroke-macro-protein" },
-                  { value: total.carbs, target: profile.carbsTarget, stroke: "stroke-macro-carbs" },
-                  { value: total.fat, target: profile.fatTarget, stroke: "stroke-macro-fat" },
-                ]}
-              />
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-button border border-border bg-surface text-accent-calories shadow-card">
+              <Icon name="flame" size={22} />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-h3 font-bold">Ernährung</h2>
+              <p className="text-caption muted">Deine Werte für {isToday ? "heute" : "diesen Tag"}</p>
             </div>
-            <p className="text-label muted">
-              <span className="text-text-primary">{fmt(total.kcal)}</span> von {fmt(profile.kcalTarget)}
-              <span className="ml-0.5 text-caption">kcal</span> gegessen
-            </p>
+          </div>
+          <div className="flex items-center justify-around gap-4">
+            <div data-ring>
+              <GoalRing eaten={total.kcal} target={profile.kcalTarget} />
+            </div>
+            <div className="min-w-0 text-center">
+              <p className={`text-[34px] font-extrabold leading-none tabular-nums ${total.kcal > profile.kcalTarget ? "text-warning" : ""}`}>
+                {fmt(Math.abs(profile.kcalTarget - total.kcal))}
+              </p>
+              <p className="mt-1 text-body leading-snug text-text-secondary">
+                {total.kcal > profile.kcalTarget ? "kcal über Ziel" : "kcal übrig"}
+                <br />
+                {isToday ? "heute" : "an diesem Tag"}
+              </p>
+              <p className="mt-3 flex items-center justify-center gap-2 text-label tabular-nums text-text-secondary">
+                <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent-calories" />
+                {fmt(total.kcal)} gegessen
+              </p>
+            </div>
           </div>
           <div className="grid grid-cols-3 divide-x divide-border">
-            <MacroStat label="Eiweiß" value={total.protein} target={profile.proteinTarget} color="bg-macro-protein" />
-            <MacroStat label="Kohlenh." value={total.carbs} target={profile.carbsTarget} color="bg-macro-carbs" />
-            <MacroStat label="Fett" value={total.fat} target={profile.fatTarget} color="bg-macro-fat" />
+            <MacroPill label="Eiweiß" value={total.protein} target={profile.proteinTarget} color="bg-macro-protein" icon="protein" />
+            <MacroPill label="Kohlenh." value={total.carbs} target={profile.carbsTarget} color="bg-macro-carbs" icon="carbs" />
+            <MacroPill label="Fett" value={total.fat} target={profile.fatTarget} color="bg-macro-fat" icon="fat" />
           </div>
         </DaySummary>
 
@@ -130,9 +141,9 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
               <Link
                 href={`/add?day=${day}&meal=${meal.key}`}
                 aria-label={`Zu ${meal.label} hinzufügen`}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary transition duration-150 ease-out active:scale-95 motion-reduce:transition-none"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary transition duration-150 ease-out active:scale-95 motion-reduce:transition-none"
               >
-                <Icon name="add" size={22} />
+                <Icon name="add" size={18} />
               </Link>
             </section>
           );

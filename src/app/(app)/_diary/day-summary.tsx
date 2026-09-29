@@ -5,7 +5,7 @@ import { celebrateOnce } from "@/components/celebrate";
 import { Icon } from "@/components/icons";
 
 /**
- * The calorie goal at the top of the diary, drawn without a card of its own. Tapping it opens a sheet with every nutrient of the day;
+ * The nutrition card at the top of the diary. Tapping it opens a sheet with every nutrient of the day;
  * landing inside the calorie target (±10 %) today plays the success effect once.
  */
 export function DaySummary({
@@ -50,7 +50,7 @@ export function DaySummary({
             open();
           }
         }}
-        className="pressable block cursor-pointer space-y-5 rounded-card py-2 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="card pressable block cursor-pointer space-y-5 outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         {children}
         <p className="-mb-1 flex items-center justify-center gap-0.5 text-caption font-semibold text-primary">
