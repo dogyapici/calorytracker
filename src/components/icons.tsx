@@ -1,5 +1,9 @@
 import {
   CalendarDays,
+  Droplet,
+  Drumstick,
+  Flame,
+  Wheat,
   Camera,
   ChartNoAxesColumn,
   ChevronDown,
@@ -44,6 +48,10 @@ const ICONS = {
   meals: UtensilsCrossed,
   palette: Palette,
   logout: LogOut,
+  flame: Flame,
+  protein: Drumstick,
+  carbs: Wheat,
+  fat: Droplet,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;
