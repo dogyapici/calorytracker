@@ -5,6 +5,7 @@ import { addDays, dayOrToday, formatDay, today } from "@/lib/dates";
 import { fmt, MEALS, mealTarget, sumNutrients } from "@/lib/nutrition";
 import { getDailyTotals, getEntriesForDay, getProfile, getStreak, getWater } from "@/lib/queries";
 import { Icon } from "@/components/icons";
+import { Logo } from "@/components/logo";
 
 import { DaySwipe } from "./_diary/day-swipe";
 import { WaterTracker } from "./_diary/water-tracker";
@@ -14,14 +15,6 @@ import { WeekStrip } from "./_diary/week-strip";
 import { weekStart } from "@/lib/training";
 
 export const metadata = { title: "Tagebuch" };
-
-/** „Heute“, „Gestern“, „Morgen“ or the weekday: short enough to never wrap next to the arrows. */
-function dayTitle(day: string, now: string) {
-  if (day === now) return "Heute";
-  if (day === addDays(now, -1)) return "Gestern";
-  if (day === addDays(now, 1)) return "Morgen";
-  return formatDay(day, { weekday: "long" });
-}
 
 export default async function DiaryPage({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
@@ -43,20 +36,9 @@ export default async function DiaryPage({ searchParams }: PageProps<"/">) {
       <div className="space-y-4">
         <header className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element -- tiny static SVG, no optimisation needed */}
-              <img src="/icon.svg" alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[11px] shadow-card" />
-              <div className="min-w-0">
-                <h1 className="whitespace-nowrap text-h2 leading-tight">CalTracker</h1>
-                <Link
-                  href={`/calendar?month=${day.slice(0, 7)}`}
-                  className="-mx-1 flex items-center gap-1 whitespace-nowrap rounded-chip px-1 text-label muted transition-colors duration-150 active:bg-surface-muted"
-                  aria-label={`${formatDay(day, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}, Kalender öffnen`}
-                >
-                  <Icon name="calendar" size={15} />
-                  {dayTitle(day, today())}, {formatDay(day, { day: "numeric", month: "long", ...(day.slice(0, 4) !== today().slice(0, 4) && { year: "numeric" }) })}
-                </Link>
-              </div>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Logo size={34} className="shrink-0" />
+              <h1 className="whitespace-nowrap text-h2 leading-none">CalTracker</h1>
             </div>
             {!isToday && (
               <Link href="/" className="shrink-0 rounded-full bg-primary-soft px-3 py-1.5 text-caption font-semibold text-primary">
