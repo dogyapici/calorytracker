@@ -1,6 +1,8 @@
 import {
   CalendarDays,
   Droplet,
+  Dumbbell,
+  Check,
   Drumstick,
   Flame,
   Wheat,
@@ -52,6 +54,8 @@ const ICONS = {
   protein: Drumstick,
   carbs: Wheat,
   fat: Droplet,
+  training: Dumbbell,
+  check: Check,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;
