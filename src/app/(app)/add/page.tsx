@@ -96,9 +96,9 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
         <input type="hidden" name="day" value={day} />
         <input type="hidden" name="meal" value={meal.key} />
         <div className="relative flex-1">
-          <Icon name="search" size={20} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+          <Icon name="search" size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary" />
           <input
-            className="input h-button pl-10 text-body"
+            className="input h-button rounded-full pl-11 text-body"
             name="q"
             type="search"
             aria-label="Lebensmittel suchen"
@@ -108,7 +108,7 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
             autoFocus={!q}
           />
         </div>
-        <PendingButton className="btn-primary h-button">Suchen</PendingButton>
+        <PendingButton className="btn-primary h-button rounded-full px-5">Suchen</PendingButton>
       </Form>
 
       <div className="grid grid-cols-2 gap-3">
