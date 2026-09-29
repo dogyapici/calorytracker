@@ -24,14 +24,17 @@ export function BarcodeScanner({
   targetBase = "",
   onCode,
   variant = "button",
+  autoOpen = false,
 }: {
   targetBase?: string;
   onCode?: (code: string) => void;
   /** "tile" draws a large card for the add page. */
   variant?: "button" | "tile";
+  /** Opens the camera right away, e.g. when coming from the quick menu. */
+  autoOpen?: boolean;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(autoOpen);
   const [manual, setManual] = useState("");
 
   const go = (code: string) => {

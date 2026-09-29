@@ -108,7 +108,7 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
       </Form>
 
       <div className="grid grid-cols-2 gap-3">
-        <BarcodeScanner targetBase={ctx} variant="tile" />
+        <BarcodeScanner targetBase={ctx} variant="tile" autoOpen={sp.scan === "1"} />
         <Link href={`/add/photo${ctx}`} className="card flex flex-col items-start gap-3 p-4 transition-transform active:scale-[0.97]">
           <span aria-hidden className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-2xl">📸</span>
           <span>

@@ -483,3 +483,23 @@ dialog.sheet {
     animation: none;
   }
 }
+
+/* Schnellaktionen am Plus der unteren Leiste: Einträge gleiten gestaffelt von unten herein. */
+.quick-backdrop {
+  animation: fade-in 200ms ease-out;
+}
+.quick-item {
+  animation: quick-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+@keyframes quick-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.9);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .quick-backdrop,
+  .quick-item {
+    animation: none;
+  }
+}
