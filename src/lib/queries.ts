@@ -68,6 +68,22 @@ export async function getRecentFoods(userId: number, limit = 15) {
     .then((rows) => rows.map((r) => r.food));
 }
 
+/** Foods the user logged most often, with how many times; ties go to the one eaten last. */
+export async function getFrequentFoods(userId: number, limit = 15) {
+  const frequent = db
+    .select({ foodId: entries.foodId, uses: sql<number>`count(*)::int`.as("uses"), lastUsed: max(entries.createdAt).as("last_used") })
+    .from(entries)
+    .where(eq(entries.userId, userId))
+    .groupBy(entries.foodId)
+    .as("frequent");
+  return db
+    .select({ food: foods, uses: frequent.uses })
+    .from(frequent)
+    .innerJoin(foods, eq(foods.id, frequent.foodId))
+    .orderBy(desc(frequent.uses), desc(frequent.lastUsed))
+    .limit(limit);
+}
+
 export async function getFavoriteFoods(userId: number) {
   return db
     .select({ food: foods })
