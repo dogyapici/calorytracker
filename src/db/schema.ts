@@ -240,6 +240,59 @@ export const savedMealItems = pgTable(
   (t) => [index("saved_meal_items_meal_idx").on(t.savedMealId)],
 );
 
+/** A training category the user creates themselves, e.g. "Brusttraining". */
+export const workoutCategories = pgTable(
+  "workout_categories",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("workout_categories_user_idx").on(t.userId)],
+);
+
+export const workoutExercises = pgTable(
+  "workout_exercises",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    categoryId: integer("category_id")
+      .notNull()
+      .references(() => workoutCategories.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("workout_exercises_category_idx").on(t.categoryId)],
+);
+
+/** One value per exercise and week: the working weight, reps per set and number of sets. */
+export const workoutLogs = pgTable(
+  "workout_logs",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    exerciseId: integer("exercise_id")
+      .notNull()
+      .references(() => workoutExercises.id, { onDelete: "cascade" }),
+    // Monday of the week.
+    week: date("week").notNull(),
+    weightKg: real("weight_kg").notNull(),
+    reps: integer("reps").notNull(),
+    sets: integer("sets"),
+    note: text("note"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.exerciseId, t.week] }), index("workout_logs_user_idx").on(t.userId)],
+);
+
 export type Food = typeof foods.$inferSelect;
 export type Entry = typeof entries.$inferSelect;
 export type Profile = typeof profiles.$inferSelect;

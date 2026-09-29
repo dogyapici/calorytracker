@@ -9,12 +9,14 @@ import { Icon, type IconName } from "./icons";
 const ITEMS: { href: string; label: string; icon: IconName }[] = [
   { href: "/", label: "Tagebuch", icon: "diary" },
   { href: "/stats", label: "Statistik", icon: "stats" },
-  { href: "/weight", label: "Gewicht", icon: "weight" },
+  { href: "/training", label: "Training", icon: "training" },
   { href: "/profile", label: "Profil", icon: "profile" },
 ];
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/" || pathname.startsWith("/diary") || pathname.startsWith("/add") || pathname.startsWith("/food") || pathname.startsWith("/entry");
+  // Gewicht hat keinen eigenen Tab mehr (Platz für Training) und gehört zur Statistik.
+  if (href === "/stats") return pathname.startsWith("/stats") || pathname.startsWith("/weight");
   return pathname.startsWith(href);
 }
 
@@ -28,6 +30,7 @@ function mealNow(): MealKey {
 }
 
 const ACTIONS: { label: string; icon: IconName; href: (meal: MealKey) => string }[] = [
+  { label: "Training eintragen", icon: "training", href: () => "/training" },
   { label: "Gewicht eintragen", icon: "weight", href: () => "/weight?add=1" },
   { label: "Foto schätzen", icon: "camera", href: (meal) => `/add/photo?meal=${meal}` },
   { label: "Barcode scannen", icon: "barcode", href: (meal) => `/add?meal=${meal}&scan=1` },
