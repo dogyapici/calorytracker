@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@/components/icons";
 
@@ -25,12 +25,18 @@ type Props = {
   children?: React.ReactNode;
 };
 
+const noop = () => () => {};
+
 /** Full-screen camera, optionally with a sharp frame in the middle and a blurred surrounding. */
 export function CameraView({ frame, hint, onClose, onVideo, onCapture, children }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  // Handylicht: nur wenn die Kamera es anbietet (meist Android/Chrome, neuere iPhones).
+  const trackRef = useRef<MediaStreamTrack | null>(null);
+  const [torchSupported, setTorchSupported] = useState(false);
+  const [torchOn, setTorchOn] = useState(false);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -50,6 +56,10 @@ export function CameraView({ frame, hint, onClose, onVideo, onCapture, children 
         video.srcObject = stream;
         await video.play();
         setReady(true);
+        const track = stream.getVideoTracks()[0];
+        trackRef.current = track ?? null;
+        const caps = track?.getCapabilities?.() as (MediaTrackCapabilities & { torch?: boolean }) | undefined;
+        if (caps?.torch) setTorchSupported(true);
         cleanup = onVideo?.(video);
       } catch {
         if (!stopped) setError("Die Kamera konnte nicht gestartet werden. Erlaube den Kamerazugriff in den Browser-Einstellungen.");
@@ -67,6 +77,18 @@ export function CameraView({ frame, hint, onClose, onVideo, onCapture, children 
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const toggleTorch = async () => {
+    const track = trackRef.current;
+    if (!track) return;
+    const next = !torchOn;
+    try {
+      await track.applyConstraints({ advanced: [{ torch: next } as MediaTrackConstraintSet] });
+      setTorchOn(next);
+    } catch {
+      setTorchSupported(false);
+    }
+  };
 
   const capture = () => {
     const video = videoRef.current;
@@ -89,6 +111,10 @@ export function CameraView({ frame, hint, onClose, onVideo, onCapture, children 
     navigator.vibrate?.(30);
     canvas.toBlob((blob) => blob && onCapture(blob), "image/jpeg", 0.9);
   };
+
+  // Auf dem Server gibt es kein document.body für das Portal (z. B. bei /add?scan=1).
+  const mounted = useSyncExternalStore(noop, () => true, () => false);
+  if (!mounted) return null;
 
   const size = frame === "none" ? null : FRAMES[frame];
   const blur = "bg-black/45 backdrop-blur-md";
@@ -117,7 +143,19 @@ export function CameraView({ frame, hint, onClose, onVideo, onCapture, children 
           <Icon name="remove" />
         </button>
         <p className="rounded-full bg-black/50 px-3 py-1.5 text-label">{hint}</p>
-        <span className="w-11" />
+        {torchSupported ? (
+          <button
+            type="button"
+            onClick={toggleTorch}
+            aria-pressed={torchOn}
+            aria-label={torchOn ? "Licht ausschalten" : "Licht einschalten"}
+            className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors duration-150 active:scale-90 ${torchOn ? "bg-white text-black" : "bg-black/50"}`}
+          >
+            <Icon name={torchOn ? "torch" : "torchOff"} />
+          </button>
+        ) : (
+          <span className="w-11" />
+        )}
       </div>
 
       <div className="absolute inset-x-0 bottom-0 space-y-4 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">

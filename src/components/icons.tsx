@@ -1,5 +1,7 @@
 import {
   CalendarDays,
+  Flashlight,
+  FlashlightOff,
   Droplet,
   Dumbbell,
   Check,
@@ -56,6 +58,8 @@ const ICONS = {
   fat: Droplet,
   training: Dumbbell,
   check: Check,
+  torch: Flashlight,
+  torchOff: FlashlightOff,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;
